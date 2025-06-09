@@ -5,6 +5,8 @@ function Register() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [repeatPassword, setRepeatPassword] = useState(""); // New state
+	const [companyName, setCompanyName] = useState("");
+	const [cif, setCif] = useState("");
 
 	const handleRegister = async (e) => {
 		e.preventDefault();
@@ -17,10 +19,14 @@ function Register() {
 		const { error } = await supabase.auth.signUp({
 			email,
 			password,
+			companyName,
+			cif,
 		});
 
 		if (error) {
 			console.error(error);
+			setPassword("");
+			setRepeatPassword("");
 			alert("Registration failed");
 		} else {
 			alert(
@@ -36,6 +42,20 @@ function Register() {
 				placeholder="Email"
 				value={email}
 				onChange={(e) => setEmail(e.target.value)}
+			/>
+			<input
+				type="text"
+				placeholder="Company Name"
+				value={companyName}
+				onChange={(e) => setCompanyName(e.target.value)}
+				className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+			/>
+			<input
+				type="text"
+				placeholder="CIF"
+				value={cif}
+				onChange={(e) => setCif(e.target.value)}
+				className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
 			/>
 			<input
 				type="password"

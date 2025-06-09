@@ -70,11 +70,15 @@ function RequestForm() {
 	};
 
 	return (
-		<form onSubmit={handleSubmit}>
+		<form
+			onSubmit={handleSubmit}
+			className="flex flex-col gap-4 max-w-md mx-auto p-4 bg-white rounded shadow"
+		>
 			<select
 				value={brand}
 				onChange={(e) => setBrand(e.target.value)}
-	nn			required
+				required
+				className="p-2 border rounded"
 			>
 				<option value="">Select Brand</option>
 				<option value="Mazda">Mazda</option>
@@ -94,6 +98,7 @@ function RequestForm() {
 				value={invoiceNumber}
 				onChange={(e) => setInvoiceNumber(e.target.value)}
 				required
+				className="p-2 border rounded"
 			/>
 			<input
 				type="text"
@@ -101,11 +106,13 @@ function RequestForm() {
 				value={partNumber}
 				onChange={(e) => setPartNumber(e.target.value)}
 				required
+				className="p-2 border rounded"
 			/>
 			<select
 				value={reason}
 				onChange={(e) => setReason(e.target.value)}
 				required
+				className="p-2 border rounded"
 			>
 				<option value="">Select Reason</option>
 				<option value="Defective">Defective</option>
@@ -122,14 +129,21 @@ function RequestForm() {
 				onChange={(e) => setQuantity(e.target.value)}
 				min={1}
 				required
+				className="p-2 border rounded"
 			/>
 			<input
 				type="text"
 				placeholder="Observations"
 				value={observations}
 				onChange={(e) => setObservations(e.target.value)}
+				className="p-2 border rounded"
 			/>
-			<button type="submit">Submit Request</button>
+			<button
+				type="submit"
+				className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition"
+			>
+				Submit Request
+			</button>
 		</form>
 	);
 }
