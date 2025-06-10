@@ -116,7 +116,9 @@ export default function AdminPanel() {
 			</div>
 
 			<div>
-				<h2 className="text-2xl font-bold mb-4">Solicitudes Enviadas</h2>
+				<h2 className="text-2xl font-bold mb-4">
+					Solicitudes Enviadas
+				</h2>
 				<div className="overflow-x-auto">
 					<table className="min-w-full border table-fixed">
 						<thead>
@@ -143,7 +145,9 @@ export default function AdminPanel() {
 									<tr key={req.id}>
 										<td className="p-2 border w-40">
 											<select
-												value={req.status || "pendiente"}
+												value={
+													req.status || "pendiente"
+												}
 												onChange={(e) =>
 													handleStatusChange(
 														req.id,
@@ -201,6 +205,4 @@ export default function AdminPanel() {
 			</div>
 		</div>
 	);
-}
->>>>>>> 8fd2c6b38ee2f4fc31e44cffad6ece5859cee3fb
 }
