@@ -73,16 +73,22 @@ function RequestForm() {
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-md mx-auto p-4 bg-white rounded shadow">
       <select value={brand} onChange={(e) => setBrand(e.target.value)} required className="p-2 border rounded">
         <option value="">Seleccionar Marca</option>
-        <option value="Mazda">Mazda</option>
-        <option value="Hyundai">Hyundai</option>
-        <option value="Audi">Audi</option>
-        <option value="Volvo">Volvo</option>
-        <option value="Toyota">Toyota</option>
-        <option value="Ford">Ford</option>
-        <option value="BMW">BMW</option>
-        <option value="Mercedes">Mercedes</option>
-        <option value="Volkswagen">Volkswagen</option>
-        <option value="Honda">Honda</option>
+        <option value="Renault">Renault</option>
+        <option value="Dacia">Dacia</option>
+        <option value="Nissan">Nissan</option>
+        <option value="KIA">KIA</option>
+        <option value="Peugeot">Peugeot</option>
+        <option value="Citroen">Citroen</option>
+        <option value="LeapMotor">LeapMotor</option>
+        <option value="DS">DS</option>
+        <option value="Opel">Opel</option>
+        <option value="Fiat">Fiat</option>
+        <option value="Abarth">Abarth</option>
+        <option value="Jeep">Jeep</option>
+        <option value="Alfa Romeo">Alfa Romeo</option>
+        <option value="MG">MG</option>
+        <option value="Omoda">Omoda</option>
+        <option value="Jaeco">Jaeco</option>
       </select>
       <input
         type="text"
@@ -106,7 +112,7 @@ function RequestForm() {
         <option value="Modelo incorrecto">Modelo incorrecto</option>
         <option value="Compra en exceso">Compra en exceso</option>
         <option value="Innecesario">Innecesario</option>
-        <option value="Dañado durante el envíot">Dañado durante el envío</option>
+        <option value="Dañado durante el envío">Dañado durante el envío</option>
         <option value="Otro">Otro</option>
       </select>
       <input

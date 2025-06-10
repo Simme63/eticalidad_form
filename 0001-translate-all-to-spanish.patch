@@ -1,0 +1,1634 @@
+From 61348abfa522ffb5332e2d5b780a62b53e971ce1 Mon Sep 17 00:00:00 2001
+From: IgnacioPena13 <ignacio.penasepulveda@outlook.com>
+Date: Tue, 10 Jun 2025 10:01:44 +0200
+Subject: [PATCH] translate all to spanish
+
+---
+ .gitignore                              |   3 +-
+ frontend/.gitignore                     |   1 +
+ frontend/package-lock.json              |  10 +
+ frontend/package.json                   |   1 +
+ frontend/src/App.jsx                    |  46 ++---
+ frontend/src/components/AdminPanel.jsx  |  27 +--
+ frontend/src/components/Login.jsx       | 194 +++++++++---------
+ frontend/src/components/MainView.jsx    | 153 +++++++-------
+ frontend/src/components/Overview.jsx    | 229 +++++++++------------
+ frontend/src/components/Register.jsx    | 203 +++++++++----------
+ frontend/src/components/RequestForm.jsx | 254 +++++++++++-------------
+ package-lock.json                       |   7 +
+ package.json                            |   1 +
+ src/controllers/data/data.json          |  26 +++
+ src/controllers/userControllers.ts      |  96 +++++++++
+ src/middleware/auth.ts                  |  36 ++++
+ src/routes/userRoutes.ts                |   9 +
+ src/server.ts                           |  15 ++
+ src/types/User.ts                       |   8 +
+ tsconfig.server.json                    |  25 +++
+ 20 files changed, 732 insertions(+), 612 deletions(-)
+ create mode 100644 package-lock.json
+ create mode 100644 package.json
+ create mode 100644 src/controllers/data/data.json
+ create mode 100644 src/controllers/userControllers.ts
+ create mode 100644 src/middleware/auth.ts
+ create mode 100644 src/routes/userRoutes.ts
+ create mode 100644 src/server.ts
+ create mode 100644 src/types/User.ts
+ create mode 100644 tsconfig.server.json
+
+diff --git a/.gitignore b/.gitignore
+index cef37b1..d9e36d5 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -1,3 +1,4 @@
+ # Local Netlify folder
+ .netlify
+-node_modules
+\ No newline at end of file
++node_modules
++.env
+\ No newline at end of file
+diff --git a/frontend/.gitignore b/frontend/.gitignore
+index a547bf3..a120b79 100644
+--- a/frontend/.gitignore
++++ b/frontend/.gitignore
+@@ -8,6 +8,7 @@ pnpm-debug.log*
+ lerna-debug.log*
+ 
+ node_modules
++.env
+ dist
+ dist-ssr
+ *.local
+diff --git a/frontend/package-lock.json b/frontend/package-lock.json
+index e4d66a7..e3d3bc8 100644
+--- a/frontend/package-lock.json
++++ b/frontend/package-lock.json
+@@ -13,6 +13,7 @@
+         "@tailwindcss/vite": "^4.1.8",
+         "jotai": "^2.12.5",
+         "jsonwebtoken": "^9.0.2",
++        "lucide-react": "^0.513.0",
+         "react": "^19.1.0",
+         "react-dom": "^19.1.0"
+       },
+@@ -3038,6 +3039,15 @@
+         "yallist": "^3.0.2"
+       }
+     },
++    "node_modules/lucide-react": {
++      "version": "0.513.0",
++      "resolved": "https://registry.npmjs.org/lucide-react/-/lucide-react-0.513.0.tgz",
++      "integrity": "sha512-CJZKq2g8Y8yN4Aq002GahSXbG2JpFv9kXwyiOAMvUBv7pxeOFHUWKB0mO7MiY4ZVFCV4aNjv2BJFq/z3DgKPQg==",
++      "license": "ISC",
++      "peerDependencies": {
++        "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0"
++      }
++    },
+     "node_modules/magic-string": {
+       "version": "0.30.17",
+       "resolved": "https://registry.npmjs.org/magic-string/-/magic-string-0.30.17.tgz",
+diff --git a/frontend/package.json b/frontend/package.json
+index b1194cc..5fd8d5a 100644
+--- a/frontend/package.json
++++ b/frontend/package.json
+@@ -15,6 +15,7 @@
+     "@tailwindcss/vite": "^4.1.8",
+     "jotai": "^2.12.5",
+     "jsonwebtoken": "^9.0.2",
++    "lucide-react": "^0.513.0",
+     "react": "^19.1.0",
+     "react-dom": "^19.1.0"
+   },
+diff --git a/frontend/src/App.jsx b/frontend/src/App.jsx
+index f6335ce..3b0b66e 100644
+--- a/frontend/src/App.jsx
++++ b/frontend/src/App.jsx
+@@ -5,34 +5,34 @@ import MainView from "./components/MainView";
+ import { supabase } from "./supabase/client";
+ 
+ function App() {
+-	const [, setUser] = useAtom(userAtom);
++  const [, setUser] = useAtom(userAtom);
+ 
+-	useEffect(() => {
+-		const getUser = async () => {
+-			const { data, error } = await supabase.auth.getUser();
+-			if (error) {
+-				console.error("Error fetching user:", error);
+-			} else {
+-				setUser(data.user);
+-			}
+-		};
++  useEffect(() => {
++    const getUser = async () => {
++      const { data, error } = await supabase.auth.getUser();
++      if (error) {
++        console.error("Error fetching user:", error);
++      } else {
++        setUser(data.user);
++      }
++    };
+ 
+-		getUser();
++    getUser();
+ 
+-		const {
+-			data: { subscription },
+-		} = supabase.auth.onAuthStateChange((_event, session) => {
+-			setUser(session?.user || null);
+-		});
++    const {
++      data: { subscription },
++    } = supabase.auth.onAuthStateChange((_event, session) => {
++      setUser(session?.user || null);
++    });
+ 
+-		return () => subscription.unsubscribe();
+-	}, [setUser]);
++    return () => subscription.unsubscribe();
++  }, [setUser]);
+ 
+-	return (
+-		<div>
+-			<MainView />
+-		</div>
+-	);
++  return (
++    <div>
++      <MainView />
++    </div>
++  );
+ }
+ 
+ export default App;
+diff --git a/frontend/src/components/AdminPanel.jsx b/frontend/src/components/AdminPanel.jsx
+index 07c6125..6ed08db 100644
+--- a/frontend/src/components/AdminPanel.jsx
++++ b/frontend/src/components/AdminPanel.jsx
+@@ -5,36 +5,27 @@ function AdminPanel() {
+   const [pendingUsers, setPendingUsers] = useState([]);
+ 
+   const fetchPendingUsers = async () => {
+-    const { data, error } = await supabase
+-      .from("profiles")
+-      .select("*")
+-      .eq("status", "pending");
++    const { data, error } = await supabase.from("profiles").select("*").eq("status", "pending");
+ 
+     if (error) {
+-      console.error("Error fetching users:", error);
++      console.error("Error obteniendo usuarios:", error);
+     } else {
+       setPendingUsers(data);
+     }
+   };
+ 
+   const approveUser = async (userId) => {
+-    const { error } = await supabase
+-      .from("profiles")
+-      .update({ status: "approved" })
+-      .eq("id", userId);
++    const { error } = await supabase.from("profiles").update({ status: "approved" }).eq("id", userId);
+ 
+     if (error) {
+-      console.error("Error approving user:", error);
++      console.error("Error aprobando usuario:", error);
+     } else {
+       fetchPendingUsers();
+     }
+   };
+ 
+   const rejectUser = async (userId) => {
+-    const { error } = await supabase
+-      .from("profiles")
+-      .delete()
+-      .eq("id", userId);
++    const { error } = await supabase.from("profiles").delete().eq("id", userId);
+ 
+     if (error) {
+       console.error("Error rejecting user:", error);
+@@ -49,13 +40,13 @@ function AdminPanel() {
+ 
+   return (
+     <div>
+-      <h2>Pending User Approvals</h2>
+-      {pendingUsers.length === 0 && <p>No pending users.</p>}
++      <h2>Aprobaciones de Usuario Pendientes</h2>
++      {pendingUsers.length === 0 && <p>No hay usuarios pendientes.</p>}
+       {pendingUsers.map((user) => (
+         <div key={user.id}>
+           <p>{user.email}</p>
+-          <button onClick={() => approveUser(user.id)}>Approve</button>
+-          <button onClick={() => rejectUser(user.id)}>Reject</button>
++          <button onClick={() => approveUser(user.id)}>Aprobar</button>
++          <button onClick={() => rejectUser(user.id)}>Rechazar</button>
+         </div>
+       ))}
+     </div>
+diff --git a/frontend/src/components/Login.jsx b/frontend/src/components/Login.jsx
+index e9e80aa..d9aa6b6 100644
+--- a/frontend/src/components/Login.jsx
++++ b/frontend/src/components/Login.jsx
+@@ -2,110 +2,96 @@ import { useState } from "react";
+ import { supabase } from "../supabase/client";
+ 
+ const Login = () => {
+-	const [email, setEmail] = useState("");
+-	const [password, setPassword] = useState("");
+-	const [error, setError] = useState(null);
+-
+-	const handleLogin = async (e) => {
+-		e.preventDefault();
+-		setError(null);
+-
+-		const { data, error } = await supabase.auth.signInWithPassword({
+-			email,
+-			password,
+-		});
+-
+-		if (error) {
+-			setError(error.message);
+-			return;
+-		}
+-
+-		const user = data.user;
+-
+-		const { data: profile, error: profileError } = await supabase
+-			.from("profiles")
+-			.select("status")
+-			.eq("id", user.id)
+-			.single();
+-
+-		if (profileError && profileError.code === "PGRST116") {
+-			const { error: insertError } = await supabase
+-				.from("profiles")
+-				.insert([
+-					{
+-						id: user.id,
+-						email: user.email,
+-						role: "user",
+-						status: "pending",
+-					},
+-				]);
+-
+-			if (insertError) {
+-				setError(insertError.message);
+-				return;
+-			}
+-
+-			await supabase.auth.signOut();
+-			setError("Your account is pending approval.");
+-			return;
+-		}
+-
+-		if (profile && profile.status !== "approved") {
+-			await supabase.auth.signOut();
+-			setError("Your account is pending approval.");
+-			return;
+-		}
+-	};
+-
+-	return (
+-		<form
+-			onSubmit={handleLogin}
+-			className="w-full bg-white rounded-2xl shadow-xl p-6 space-y-5 border border-sky-200"
+-		>
+-			<h2 className="text-2xl font-bold text-center text-sky-700">
+-				Login
+-			</h2>
+-
+-			<div>
+-				<label className="block text-sky-800 text-sm mb-1">Email</label>
+-				<input
+-					type="email"
+-					placeholder="you@example.com"
+-					value={email}
+-					onChange={(e) => setEmail(e.target.value)}
+-					className="w-full px-4 py-2 border border-sky-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+-					required
+-				/>
+-			</div>
+-
+-			<div>
+-				<label className="block text-sky-800 text-sm mb-1">
+-					Password
+-				</label>
+-				<input
+-					type="password"
+-					placeholder="••••••••"
+-					value={password}
+-					onChange={(e) => setPassword(e.target.value)}
+-					className="w-full px-4 py-2 border border-sky-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+-					required
+-				/>
+-			</div>
+-
+-			<button
+-				type="submit"
+-				className="w-full bg-sky-600 text-white py-2 rounded-xl hover:bg-sky-700 transition font-semibold"
+-			>
+-				Log In
+-			</button>
+-
+-			{error && (
+-				<div className="text-red-600 text-center font-medium">
+-					{error}
+-				</div>
+-			)}
+-		</form>
+-	);
++  const [email, setEmail] = useState("");
++  const [password, setPassword] = useState("");
++  const [error, setError] = useState(null);
++
++  const handleLogin = async (e) => {
++    e.preventDefault();
++    setError(null);
++
++    const { data, error } = await supabase.auth.signInWithPassword({
++      email,
++      password,
++    });
++
++    if (error) {
++      setError(error.message);
++      return;
++    }
++
++    const user = data.user;
++
++    const { data: profile, error: profileError } = await supabase
++      .from("profiles")
++      .select("status")
++      .eq("id", user.id)
++      .single();
++
++    if (profileError && profileError.code === "PGRST116") {
++      const { error: insertError } = await supabase.from("profiles").insert([
++        {
++          id: user.id,
++          email: user.email,
++          role: "user",
++          status: "pending",
++        },
++      ]);
++
++      if (insertError) {
++        setError(insertError.message);
++        return;
++      }
++
++      await supabase.auth.signOut();
++      setError("Tu cuenta espera aprobación.");
++      return;
++    }
++
++    if (profile && profile.status !== "approved") {
++      await supabase.auth.signOut();
++      setError("Tu cuenta espera aprobación.");
++      return;
++    }
++  };
++
++  return (
++    <form onSubmit={handleLogin} className="w-full bg-white rounded-2xl shadow-xl p-6 space-y-5 border border-sky-200">
++      <h2 className="text-2xl font-bold text-center text-sky-700">Iniciar sesión</h2>
++
++      <div>
++        <label className="block text-sky-800 text-sm mb-1">Correo electrónico</label>
++        <input
++          type="email"
++          placeholder="you@example.com"
++          value={email}
++          onChange={(e) => setEmail(e.target.value)}
++          className="w-full px-4 py-2 border border-sky-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
++          required
++        />
++      </div>
++
++      <div>
++        <label className="block text-sky-800 text-sm mb-1">Contraseña</label>
++        <input
++          type="password"
++          placeholder="••••••••"
++          value={password}
++          onChange={(e) => setPassword(e.target.value)}
++          className="w-full px-4 py-2 border border-sky-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
++          required
++        />
++      </div>
++
++      <button
++        type="submit"
++        className="w-full bg-sky-600 text-white py-2 rounded-xl hover:bg-sky-700 transition font-semibold">
++        Iniciar sesión
++      </button>
++
++      {error && <div className="text-red-600 text-center font-medium">{error}</div>}
++    </form>
++  );
+ };
+ 
+ export default Login;
+diff --git a/frontend/src/components/MainView.jsx b/frontend/src/components/MainView.jsx
+index f65e8c5..3486540 100644
+--- a/frontend/src/components/MainView.jsx
++++ b/frontend/src/components/MainView.jsx
+@@ -10,97 +10,80 @@ import Register from "./Register";
+ import RequestForm from "./RequestForm";
+ 
+ function MainView() {
+-	const [user] = useAtom(userAtom);
+-	const [activeTab, setActiveTab] = useState("overview");
+-	const [role, setRole] = useState(null);
++  const [user] = useAtom(userAtom);
++  const [activeTab, setActiveTab] = useState("overview");
++  const [role, setRole] = useState(null);
+ 
+-	useEffect(() => {
+-		const fetchRole = async () => {
+-			if (user) {
+-				const { data: profile } = await supabase
+-					.from("profiles")
+-					.select("role")
+-					.eq("id", user.id)
+-					.single();
+-				setRole(profile?.role || "user");
+-			}
+-		};
+-		fetchRole();
+-	}, [user]);
++  useEffect(() => {
++    const fetchRole = async () => {
++      if (user) {
++        const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
++        setRole(profile?.role || "user");
++      }
++    };
++    fetchRole();
++  }, [user]);
+ 
+-	if (!user) {
+-		return (
+-			<div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-sky-100 to-sky-300">
+-				<div className="bg-white rounded-2xl shadow-2xl p-10 border border-sky-200 w-full max-w-4xl">
+-					<h2 className="text-3xl font-bold text-center text-sky-700 mb-8">
+-						Welcome — Please Register or Log In
+-					</h2>
+-					<div className="flex flex-col md:flex-row gap-8">
+-						<div className="flex-1 min-w-[280px]">
+-							<Register />
+-						</div>
+-						<div className="flex-1 min-w-[280px] border-t md:border-t-0 md:border-l border-sky-100 md:pl-8 pt-8 md:pt-0">
+-							<Login />
+-						</div>
+-					</div>
+-				</div>
+-			</div>
+-		);
+-	}
++  if (!user) {
++    return (
++      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-sky-100 to-sky-300">
++        <div className="bg-white rounded-2xl shadow-2xl p-10 border border-sky-200 w-full max-w-4xl">
++          <h2 className="text-3xl font-bold text-center text-sky-700 mb-8">
++            ¡Bienvenido! — Por favor, registrate o inicia sesión
++          </h2>
++          <div className="flex flex-col md:flex-row gap-8">
++            <div className="flex-1 min-w-[280px]">
++              <Register />
++            </div>
++            <div className="flex-1 min-w-[280px] border-t md:border-t-0 md:border-l border-sky-100 md:pl-8 pt-8 md:pt-0">
++              <Login />
++            </div>
++          </div>
++        </div>
++      </div>
++    );
++  }
+ 
+-	return (
+-		<div className="max-w-5xl mx-auto p-4">
+-			{/* Tab Nav */}
+-			<div className="flex justify-center gap-6 mb-8">
+-				<button
+-					className={`flex flex-col items-center p-4 rounded-2xl transition ${
+-						activeTab === "overview"
+-							? "bg-sky-600 text-white shadow-lg"
+-							: "bg-gray-100 text-sky-700 hover:bg-sky-50"
+-					}`}
+-					onClick={() => setActiveTab("overview")}
+-				>
+-					<LayoutDashboard size={32} />
+-					<span className="text-sm font-medium mt-1">Overview</span>
+-				</button>
++  return (
++    <div className="max-w-5xl mx-auto p-4">
++      {/* Tab Nav */}
++      <div className="flex justify-center gap-6 mb-8">
++        <button
++          className={`flex flex-col items-center p-4 rounded-2xl transition ${
++            activeTab === "overview" ? "bg-sky-600 text-white shadow-lg" : "bg-gray-100 text-sky-700 hover:bg-sky-50"
++          }`}
++          onClick={() => setActiveTab("overview")}>
++          <LayoutDashboard size={32} />
++          <span className="text-sm font-medium mt-1">Resumen</span>
++        </button>
+ 
+-				<button
+-					className={`flex flex-col items-center p-4 rounded-2xl transition ${
+-						activeTab === "request"
+-							? "bg-sky-600 text-white shadow-lg"
+-							: "bg-gray-100 text-sky-700 hover:bg-sky-50"
+-					}`}
+-					onClick={() => setActiveTab("request")}
+-				>
+-					<PlusCircle size={32} />
+-					<span className="text-sm font-medium mt-1">
+-						New Request
+-					</span>
+-				</button>
++        <button
++          className={`flex flex-col items-center p-4 rounded-2xl transition ${
++            activeTab === "request" ? "bg-sky-600 text-white shadow-lg" : "bg-gray-100 text-sky-700 hover:bg-sky-50"
++          }`}
++          onClick={() => setActiveTab("request")}>
++          <PlusCircle size={32} />
++          <span className="text-sm font-medium mt-1">Nueva solicitud</span>
++        </button>
+ 
+-				{role === "admin" && (
+-					<button
+-						className={`flex flex-col items-center p-4 rounded-2xl transition ${
+-							activeTab === "admin"
+-								? "bg-sky-600 text-white shadow-lg"
+-								: "bg-gray-100 text-sky-700 hover:bg-sky-50"
+-						}`}
+-						onClick={() => setActiveTab("admin")}
+-					>
+-						<ShieldCheck size={32} />
+-						<span className="text-sm font-medium mt-1">
+-							Admin Panel
+-						</span>
+-					</button>
+-				)}
+-			</div>
++        {role === "admin" && (
++          <button
++            className={`flex flex-col items-center p-4 rounded-2xl transition ${
++              activeTab === "admin" ? "bg-sky-600 text-white shadow-lg" : "bg-gray-100 text-sky-700 hover:bg-sky-50"
++            }`}
++            onClick={() => setActiveTab("admin")}>
++            <ShieldCheck size={32} />
++            <span className="text-sm font-medium mt-1">Panel de administrador</span>
++          </button>
++        )}
++      </div>
+ 
+-			{/* Tab content */}
+-			{activeTab === "overview" && <Overview />}
+-			{activeTab === "request" && <RequestForm />}
+-			{activeTab === "admin" && role === "admin" && <AdminPanel />}
+-		</div>
+-	);
++      {/* Tab content */}
++      {activeTab === "overview" && <Overview />}
++      {activeTab === "request" && <RequestForm />}
++      {activeTab === "admin" && role === "admin" && <AdminPanel />}
++    </div>
++  );
+ }
+ 
+ export default MainView;
+diff --git a/frontend/src/components/Overview.jsx b/frontend/src/components/Overview.jsx
+index ed88a37..456bad1 100644
+--- a/frontend/src/components/Overview.jsx
++++ b/frontend/src/components/Overview.jsx
+@@ -2,153 +2,110 @@
+ import { useEffect, useState } from "react";
+ import { supabase } from "../supabase/client";
+ 
+-const STATUS_OPTIONS = ["pending", "approved", "paid"];
++const STATUS_OPTIONS = ["pendiente", "aprobado", "pagado"];
+ 
+ export default function Overview() {
+-	const [requests, setRequests] = useState([]);
+-	const [user, setUser] = useState(null);
+-	const [role, setRole] = useState("user");
+-	const [loading, setLoading] = useState(true);
++  const [requests, setRequests] = useState([]);
++  const [user, setUser] = useState(null);
++  const [role, setRole] = useState("user");
++  const [loading, setLoading] = useState(true);
+ 
+-	useEffect(() => {
+-		const fetchUserAndRequests = async () => {
+-			setLoading(true);
+-			const {
+-				data: { user },
+-			} = await supabase.auth.getUser();
+-			setUser(user);
++  useEffect(() => {
++    const fetchUserAndRequests = async () => {
++      setLoading(true);
++      const {
++        data: { user },
++      } = await supabase.auth.getUser();
++      setUser(user);
+ 
+-			if (!user) {
+-				setRequests([]);
+-				setLoading(false);
+-				return;
+-			}
++      if (!user) {
++        setRequests([]);
++        setLoading(false);
++        return;
++      }
+ 
+-			// Get user role
+-			const { data: profile } = await supabase
+-				.from("profiles")
+-				.select("role")
+-				.eq("id", user.id)
+-				.single();
++      // Get user role
++      const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+ 
+-			setRole(profile?.role || "user");
++      setRole(profile?.role || "user");
+ 
+-			// Build query and chain all modifiers before await
+-			let query = supabase.from("requests").select("*");
+-			if (profile?.role !== "admin") {
+-				query = query.eq("user_id", user.id);
+-			}
+-			const { data, error } = await query.order("submitted_at", {
+-				ascending: false,
+-			});
++      // Build query and chain all modifiers before await
++      let query = supabase.from("requests").select("*");
++      if (profile?.role !== "admin") {
++        query = query.eq("user_id", user.id);
++      }
++      const { data, error } = await query.order("submitted_at", {
++        ascending: false,
++      });
+ 
+-			if (error) console.error("Error loading requests:", error);
++      if (error) console.error("Error cargando solicitudes:", error);
+ 
+-			setRequests(data || []);
+-			setLoading(false);
+-		};
++      setRequests(data || []);
++      setLoading(false);
++    };
+ 
+-		fetchUserAndRequests();
+-	}, []);
++    fetchUserAndRequests();
++  }, []);
+ 
+-	const handleStatusChange = async (id, newStatus) => {
+-		await supabase
+-			.from("requests")
+-			.update({ status: newStatus })
+-			.eq("id", id);
+-		setRequests((prev) =>
+-			prev.map((req) =>
+-				req.id === id ? { ...req, status: newStatus } : req
+-			)
+-		);
+-	};
++  const handleStatusChange = async (id, newStatus) => {
++    await supabase.from("requests").update({ status: newStatus }).eq("id", id);
++    setRequests((prev) => prev.map((req) => (req.id === id ? { ...req, status: newStatus } : req)));
++  };
+ 
+-	if (loading) return <div className="text-center mt-8">Loading...</div>;
+-	if (!user)
+-		return (
+-			<div className="text-center mt-8">
+-				Please log in to view your requests.
+-			</div>
+-		);
++  if (loading) return <div className="text-center mt-8">Cargando...</div>;
++  if (!user) return <div className="text-center mt-8">Inicia sesión para ver tus solicitudes</div>;
+ 
+-	return (
+-		<div className="max-w-3xl mx-auto mt-8 p-4 bg-white rounded shadow">
+-			<h2 className="text-2xl font-bold mb-4 text-center">
+-				Requests Overview
+-			</h2>
+-			<div className="overflow-x-auto">
+-				<table className="min-w-full border">
+-					<thead>
+-						<tr className="bg-gray-100">
+-							<th className="p-2 border">Brand</th>
+-							<th className="p-2 border">Invoice #</th>
+-							<th className="p-2 border">Part #</th>
+-							<th className="p-2 border">Quantity</th>
+-							<th className="p-2 border">Reason</th>
+-							<th className="p-2 border">Status</th>
+-							{role === "admin" && (
+-								<th className="p-2 border">Actions</th>
+-							)}
+-						</tr>
+-					</thead>
+-					<tbody>
+-						{requests.map((req) => (
+-							<tr key={req.id}>
+-								<td className="p-2 border">{req.brand}</td>
+-								<td className="p-2 border">
+-									{req.delivery_note_or_invoice_number}
+-								</td>
+-								<td className="p-2 border">
+-									{req.part_number}
+-								</td>
+-								<td className="p-2 border">{req.quantity}</td>
+-								<td className="p-2 border">
+-									{req.reason_for_return}
+-								</td>
+-								<td className="p-2 border capitalize">
+-									{req.status || "pending"}
+-								</td>
+-								{role === "admin" && (
+-									<td className="p-2 border">
+-										<select
+-											value={req.status || "pending"}
+-											onChange={(e) =>
+-												handleStatusChange(
+-													req.id,
+-													e.target.value
+-												)
+-											}
+-											className="border rounded px-2 py-1"
+-										>
+-											{STATUS_OPTIONS.map((status) => (
+-												<option
+-													key={status}
+-													value={status}
+-												>
+-													{status
+-														.charAt(0)
+-														.toUpperCase() +
+-														status.slice(1)}
+-												</option>
+-											))}
+-										</select>
+-									</td>
+-								)}
+-							</tr>
+-						))}
+-						{requests.length === 0 && (
+-							<tr>
+-								<td
+-									colSpan={role === "admin" ? 7 : 6}
+-									className="text-center p-4"
+-								>
+-									No requests found.
+-								</td>
+-							</tr>
+-						)}
+-					</tbody>
+-				</table>
+-			</div>
+-		</div>
+-	);
++  return (
++    <div className="max-w-3xl mx-auto mt-8 p-4 bg-white rounded shadow">
++      <h2 className="text-2xl font-bold mb-4 text-center">Resumen de solicitudes</h2>
++      <div className="overflow-x-auto">
++        <table className="min-w-full border">
++          <thead>
++            <tr className="bg-gray-100">
++              <th className="p-2 border">Marca</th>
++              <th className="p-2 border">N° Factura</th>
++              <th className="p-2 border">N° Parte</th>
++              <th className="p-2 border">Cantidad</th>
++              <th className="p-2 border">Motivo</th>
++              <th className="p-2 border">Estado</th>
++              {role === "admin" && <th className="p-2 border">Acciones</th>}
++            </tr>
++          </thead>
++          <tbody>
++            {requests.map((req) => (
++              <tr key={req.id}>
++                <td className="p-2 border">{req.brand}</td>
++                <td className="p-2 border">{req.delivery_note_or_invoice_number}</td>
++                <td className="p-2 border">{req.part_number}</td>
++                <td className="p-2 border">{req.quantity}</td>
++                <td className="p-2 border">{req.reason_for_return}</td>
++                <td className="p-2 border capitalize">{req.status || "pendiente"}</td>
++                {role === "admin" && (
++                  <td className="p-2 border">
++                    <select
++                      value={req.status || "pendiente"}
++                      onChange={(e) => handleStatusChange(req.id, e.target.value)}
++                      className="border rounded px-2 py-1">
++                      {STATUS_OPTIONS.map((status) => (
++                        <option key={status} value={status}>
++                          {status.charAt(0).toUpperCase() + status.slice(1)}
++                        </option>
++                      ))}
++                    </select>
++                  </td>
++                )}
++              </tr>
++            ))}
++            {requests.length === 0 && (
++              <tr>
++                <td colSpan={role === "admin" ? 7 : 6} className="text-center p-4">
++                  No hay solicitudes.
++                </td>
++              </tr>
++            )}
++          </tbody>
++        </table>
++      </div>
++    </div>
++  );
+ }
+diff --git a/frontend/src/components/Register.jsx b/frontend/src/components/Register.jsx
+index 7940387..6482ee4 100644
+--- a/frontend/src/components/Register.jsx
++++ b/frontend/src/components/Register.jsx
+@@ -2,128 +2,111 @@ import { useState } from "react";
+ import { supabase } from "../supabase/client";
+ 
+ function Register() {
+-	const [email, setEmail] = useState("");
+-	const [password, setPassword] = useState("");
+-	const [repeatPassword, setRepeatPassword] = useState("");
+-	const [companyName, setCompanyName] = useState("");
+-	const [cif, setCif] = useState("");
+-	const [error, setError] = useState(null);
++  const [email, setEmail] = useState("");
++  const [password, setPassword] = useState("");
++  const [repeatPassword, setRepeatPassword] = useState("");
++  const [companyName, setCompanyName] = useState("");
++  const [cif, setCif] = useState("");
++  const [error, setError] = useState(null);
+ 
+-	const handleRegister = async (e) => {
+-		e.preventDefault();
+-		setError(null);
++  const handleRegister = async (e) => {
++    e.preventDefault();
++    setError(null);
+ 
+-		if (password !== repeatPassword) {
+-			setError("Passwords do not match.");
+-			setPassword("");
+-			setRepeatPassword("");
+-			return;
+-		}
++    if (password !== repeatPassword) {
++      setError("Las contraseñas no coinciden.");
++      setPassword("");
++      setRepeatPassword("");
++      return;
++    }
+ 
+-		const { error } = await supabase.auth.signUp({
+-			email,
+-			password,
+-		});
++    const { error } = await supabase.auth.signUp({
++      email,
++      password,
++    });
+ 
+-		if (error) {
+-			console.error(error);
+-			setPassword("");
+-			setRepeatPassword("");
+-			setError("Registration failed. Please try again.");
+-		} else {
+-			alert(
+-				"Registration successful — check your inbox to confirm your email!"
+-			);
+-		}
+-	};
++    if (error) {
++      console.error(error);
++      setPassword("");
++      setRepeatPassword("");
++      setError("Registro fallido, por favor, inténtalo de nuevo.");
++    } else {
++      alert("Registro exitoso — Revisa tu correo para verificar tu cuenta!");
++    }
++  };
+ 
+-	return (
+-		<form
+-			onSubmit={handleRegister}
+-			className="w-full bg-white rounded-2xl shadow-xl p-6 space-y-5 border border-sky-200"
+-		>
+-			<h2 className="text-2xl font-bold text-center text-sky-700 mb-3">
+-				Register
+-			</h2>
++  return (
++    <form
++      onSubmit={handleRegister}
++      className="w-full bg-white rounded-2xl shadow-xl p-6 space-y-5 border border-sky-200">
++      <h2 className="text-2xl font-bold text-center text-sky-700 mb-3">Registrarse</h2>
+ 
+-			<div>
+-				<label className="block text-sky-800 text-sm mb-1">Email</label>
+-				<input
+-					type="email"
+-					placeholder="you@example.com"
+-					value={email}
+-					onChange={(e) => setEmail(e.target.value)}
+-					className="w-full px-4 py-2 border border-sky-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+-					required
+-				/>
+-			</div>
++      <div>
++        <label className="block text-sky-800 text-sm mb-1">Correo electrónico</label>
++        <input
++          type="email"
++          placeholder="yo@ejemplo.com"
++          value={email}
++          onChange={(e) => setEmail(e.target.value)}
++          className="w-full px-4 py-2 border border-sky-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
++          required
++        />
++      </div>
+ 
+-			<div>
+-				<label className="block text-sky-800 text-sm mb-1">
+-					Company Name
+-				</label>
+-				<input
+-					type="text"
+-					placeholder="Company Name"
+-					value={companyName}
+-					onChange={(e) => setCompanyName(e.target.value)}
+-					className="w-full px-4 py-2 border border-sky-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+-				/>
+-			</div>
++      <div>
++        <label className="block text-sky-800 text-sm mb-1">Nombre de Compañía</label>
++        <input
++          type="text"
++          placeholder="Nombre de tu Compañía"
++          value={companyName}
++          onChange={(e) => setCompanyName(e.target.value)}
++          className="w-full px-4 py-2 border border-sky-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
++        />
++      </div>
+ 
+-			<div>
+-				<label className="block text-sky-800 text-sm mb-1">CIF</label>
+-				<input
+-					type="text"
+-					placeholder="CIF"
+-					value={cif}
+-					onChange={(e) => setCif(e.target.value)}
+-					className="w-full px-4 py-2 border border-sky-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+-				/>
+-			</div>
++      <div>
++        <label className="block text-sky-800 text-sm mb-1">CIF</label>
++        <input
++          type="text"
++          placeholder="CIF"
++          value={cif}
++          onChange={(e) => setCif(e.target.value)}
++          className="w-full px-4 py-2 border border-sky-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
++        />
++      </div>
+ 
+-			<div>
+-				<label className="block text-sky-800 text-sm mb-1">
+-					Password
+-				</label>
+-				<input
+-					type="password"
+-					placeholder="••••••••"
+-					value={password}
+-					onChange={(e) => setPassword(e.target.value)}
+-					className="w-full px-4 py-2 border border-sky-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+-					required
+-				/>
+-			</div>
++      <div>
++        <label className="block text-sky-800 text-sm mb-1">Contraseña</label>
++        <input
++          type="password"
++          placeholder="••••••••"
++          value={password}
++          onChange={(e) => setPassword(e.target.value)}
++          className="w-full px-4 py-2 border border-sky-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
++          required
++        />
++      </div>
+ 
+-			<div>
+-				<label className="block text-sky-800 text-sm mb-1">
+-					Repeat Password
+-				</label>
+-				<input
+-					type="password"
+-					placeholder="••••••••"
+-					value={repeatPassword}
+-					onChange={(e) => setRepeatPassword(e.target.value)}
+-					className="w-full px-4 py-2 border border-sky-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+-					required
+-				/>
+-			</div>
++      <div>
++        <label className="block text-sky-800 text-sm mb-1">Confirmar Cotraseña</label>
++        <input
++          type="password"
++          value={repeatPassword}
++          onChange={(e) => setRepeatPassword(e.target.value)}
++          className="w-full px-4 py-2 border border-sky-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
++          required
++        />
++      </div>
+ 
+-			<button
+-				type="submit"
+-				className="w-full bg-sky-600 text-white py-2 rounded-xl hover:bg-sky-700 transition font-semibold"
+-			>
+-				Register
+-			</button>
++      <button
++        type="submit"
++        className="w-full bg-sky-600 text-white py-2 rounded-xl hover:bg-sky-700 transition font-semibold">
++        Registrarse
++      </button>
+ 
+-			{error && (
+-				<div className="text-red-600 text-center font-medium">
+-					{error}
+-				</div>
+-			)}
+-		</form>
+-	);
++      {error && <div className="text-red-600 text-center font-medium">{error}</div>}
++    </form>
++  );
+ }
+ 
+ export default Register;
+diff --git a/frontend/src/components/RequestForm.jsx b/frontend/src/components/RequestForm.jsx
+index 98ed694..e795934 100644
+--- a/frontend/src/components/RequestForm.jsx
++++ b/frontend/src/components/RequestForm.jsx
+@@ -2,150 +2,134 @@ import { useState } from "react";
+ import { supabase } from "../supabase/client";
+ 
+ function RequestForm() {
+-	const [brand, setBrand] = useState("");
+-	const [invoiceNumber, setInvoiceNumber] = useState("");
+-	const [partNumber, setPartNumber] = useState("");
+-	const [reason, setReason] = useState("");
+-	const [quantity, setQuantity] = useState("");
+-	const [observations, setObservations] = useState("");
++  const [brand, setBrand] = useState("");
++  const [invoiceNumber, setInvoiceNumber] = useState("");
++  const [partNumber, setPartNumber] = useState("");
++  const [reason, setReason] = useState("");
++  const [quantity, setQuantity] = useState("");
++  const [observations, setObservations] = useState("");
+ 
+-	const handleSubmit = async (e) => {
+-		e.preventDefault();
++  const handleSubmit = async (e) => {
++    e.preventDefault();
+ 
+-		// Get current logged-in user
+-		const {
+-			data: { user },
+-			error: userError,
+-		} = await supabase.auth.getUser();
++    // Get current logged-in user
++    const {
++      data: { user },
++      error: userError,
++    } = await supabase.auth.getUser();
+ 
+-		console.log(user);
++    console.log(user);
+ 
+-		if (userError) {
+-			console.error("Error fetching user:", userError);
+-			alert("Error getting user info");
+-			return;
+-		}
+-		if (!user) {
+-			alert("You must be logged in");
+-			return;
+-		}
++    if (userError) {
++      console.error("Error fetching user:", userError);
++      alert("Error obteniendo informacion del usuario");
++      return;
++    }
++    if (!user) {
++      alert("¡Debes iniciar sesión!");
++      return;
++    }
+ 
+-		const { error: profileError } = await supabase.from("profiles").upsert([
+-			{
+-				id: user.id,
+-				email: user.email,
+-			},
+-		]);
++    const { error: profileError } = await supabase.from("profiles").upsert([
++      {
++        id: user.id,
++        email: user.email,
++      },
++    ]);
+ 
+-		if (profileError) {
+-			console.error("Failed to insert profile:", profileError);
+-		}
++    if (profileError) {
++      console.error("Error al insertar perfil:", profileError);
++    }
+ 
+-		// Insert new request
+-		const { error } = await supabase.from("requests").insert([
+-			{
+-				user_id: user.id,
+-				brand: brand,
+-				delivery_note_or_invoice_number: invoiceNumber,
+-				part_number: partNumber,
+-				quantity: parseInt(quantity, 10),
+-				reason_for_return: reason,
+-				observations: observations || null,
+-			},
+-		]);
++    // Insert new request
++    const { error } = await supabase.from("requests").insert([
++      {
++        user_id: user.id,
++        brand: brand,
++        delivery_note_or_invoice_number: invoiceNumber,
++        part_number: partNumber,
++        quantity: parseInt(quantity, 10),
++        reason_for_return: reason,
++        observations: observations || null,
++      },
++    ]);
+ 
+-		if (error) {
+-			console.error("Insert error:", error);
+-			alert("Failed to submit request");
+-		} else {
+-			alert("Request submitted!");
+-			// Optionally clear form fields here
+-			setBrand("");
+-			setInvoiceNumber("");
+-			setPartNumber("");
+-			setReason("");
+-			setQuantity("");
+-			setObservations("");
+-		}
+-	};
++    if (error) {
++      console.error("Insert error:", error);
++      alert("Error al enviar la solicitud");
++    } else {
++      alert("¡Solicitud enviada!");
++      // Optionally clear form fields here
++      setBrand("");
++      setInvoiceNumber("");
++      setPartNumber("");
++      setReason("");
++      setQuantity("");
++      setObservations("");
++    }
++  };
+ 
+-	return (
+-		<form
+-			onSubmit={handleSubmit}
+-			className="flex flex-col gap-4 max-w-md mx-auto p-4 bg-white rounded shadow"
+-		>
+-			<select
+-				value={brand}
+-				onChange={(e) => setBrand(e.target.value)}
+-				required
+-				className="p-2 border rounded"
+-			>
+-				<option value="">Select Brand</option>
+-				<option value="Mazda">Mazda</option>
+-				<option value="Hyundai">Hyundai</option>
+-				<option value="Audi">Audi</option>
+-				<option value="Volvo">Volvo</option>
+-				<option value="Toyota">Toyota</option>
+-				<option value="Ford">Ford</option>
+-				<option value="BMW">BMW</option>
+-				<option value="Mercedes">Mercedes</option>
+-				<option value="Volkswagen">Volkswagen</option>
+-				<option value="Honda">Honda</option>
+-			</select>
+-			<input
+-				type="text"
+-				placeholder="Invoice Number"
+-				value={invoiceNumber}
+-				onChange={(e) => setInvoiceNumber(e.target.value)}
+-				required
+-				className="p-2 border rounded"
+-			/>
+-			<input
+-				type="text"
+-				placeholder="Part Number"
+-				value={partNumber}
+-				onChange={(e) => setPartNumber(e.target.value)}
+-				required
+-				className="p-2 border rounded"
+-			/>
+-			<select
+-				value={reason}
+-				onChange={(e) => setReason(e.target.value)}
+-				required
+-				className="p-2 border rounded"
+-			>
+-				<option value="">Select Reason</option>
+-				<option value="Defective">Defective</option>
+-				<option value="Wrong Model">Wrong Model</option>
+-				<option value="Bought Excess">Bought Excess</option>
+-				<option value="Not Needed">Not Needed</option>
+-				<option value="Damaged in Transit">Damaged in Transit</option>
+-				<option value="Other">Other</option>
+-			</select>
+-			<input
+-				type="number"
+-				placeholder="Quantity"
+-				value={quantity}
+-				onChange={(e) => setQuantity(e.target.value)}
+-				min={1}
+-				required
+-				className="p-2 border rounded"
+-			/>
+-			<input
+-				type="text"
+-				placeholder="Observations"
+-				value={observations}
+-				onChange={(e) => setObservations(e.target.value)}
+-				className="p-2 border rounded"
+-			/>
+-			<button
+-				type="submit"
+-				className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition"
+-			>
+-				Submit Request
+-			</button>
+-		</form>
+-	);
++  return (
++    <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-md mx-auto p-4 bg-white rounded shadow">
++      <select value={brand} onChange={(e) => setBrand(e.target.value)} required className="p-2 border rounded">
++        <option value="">Seleccionar Marca</option>
++        <option value="Mazda">Mazda</option>
++        <option value="Hyundai">Hyundai</option>
++        <option value="Audi">Audi</option>
++        <option value="Volvo">Volvo</option>
++        <option value="Toyota">Toyota</option>
++        <option value="Ford">Ford</option>
++        <option value="BMW">BMW</option>
++        <option value="Mercedes">Mercedes</option>
++        <option value="Volkswagen">Volkswagen</option>
++        <option value="Honda">Honda</option>
++      </select>
++      <input
++        type="text"
++        placeholder="Número de factura"
++        value={invoiceNumber}
++        onChange={(e) => setInvoiceNumber(e.target.value)}
++        required
++        className="p-2 border rounded"
++      />
++      <input
++        type="text"
++        placeholder="Número de parte"
++        value={partNumber}
++        onChange={(e) => setPartNumber(e.target.value)}
++        required
++        className="p-2 border rounded"
++      />
++      <select value={reason} onChange={(e) => setReason(e.target.value)} required className="p-2 border rounded">
++        <option value="">Seleccionar Motivo</option>
++        <option value="Defectuoso">Defectuoso</option>
++        <option value="Modelo incorrecto">Modelo incorrecto</option>
++        <option value="Compra en exceso">Compra en exceso</option>
++        <option value="Innecesario">Innecesario</option>
++        <option value="Dañado durante el envíot">Dañado durante el envío</option>
++        <option value="Otro">Otro</option>
++      </select>
++      <input
++        type="number"
++        placeholder="Cantidad"
++        value={quantity}
++        onChange={(e) => setQuantity(e.target.value)}
++        min={1}
++        required
++        className="p-2 border rounded"
++      />
++      <input
++        type="text"
++        placeholder="Observaciones"
++        value={observations}
++        onChange={(e) => setObservations(e.target.value)}
++        className="p-2 border rounded"
++      />
++      <button type="submit" className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition">
++        Enviar solicitud
++      </button>
++    </form>
++  );
+ }
+ 
+ export default RequestForm;
+diff --git a/package-lock.json b/package-lock.json
+new file mode 100644
+index 0000000..27b8e55
+--- /dev/null
++++ b/package-lock.json
+@@ -0,0 +1,7 @@
++{
++  "name": "eticalidad_form",
++  "version": "0.0.0",
++  "lockfileVersion": 3,
++  "requires": true,
++  "packages": {}
++}
+diff --git a/package.json b/package.json
+new file mode 100644
+index 0000000..0967ef4
+--- /dev/null
++++ b/package.json
+@@ -0,0 +1 @@
++{}
+diff --git a/src/controllers/data/data.json b/src/controllers/data/data.json
+new file mode 100644
+index 0000000..57bc8c1
+--- /dev/null
++++ b/src/controllers/data/data.json
+@@ -0,0 +1,26 @@
++[
++  {
++    "email": "user2@me.com",
++    "password": "$2b$10$mZdgVGOXFheQMT4p3kjUROOBYO/TPI0sHpw8/i8omSY0F4O8xLufK",
++    "cif": "1234567890",
++    "fname": "userr",
++    "lname": "test2",
++    "mobile": "123456789"
++  },
++  {
++    "email": "user@me.com",
++    "password": "$2b$10$bIOVupo0lEUtWzGtCDsrXuRc.B8N33kTlFsNeu8wHlkDPsCevy.Fa",
++    "cif": "1234567890",
++    "fname": "user",
++    "lname": "test",
++    "mobile": "123456789"
++  },
++  {
++    "email": "user123@me.com",
++    "password": "$2b$10$DOGi9yq4je7Udk2LAsqguOa7IcxgXHc6DdDJYALhKcrmuqnCqvX6G",
++    "cif": "1234567890",
++    "fname": "user",
++    "lname": "test",
++    "mobile": "123456789"
++  }
++]
+\ No newline at end of file
+diff --git a/src/controllers/userControllers.ts b/src/controllers/userControllers.ts
+new file mode 100644
+index 0000000..8e3524a
+--- /dev/null
++++ b/src/controllers/userControllers.ts
+@@ -0,0 +1,96 @@
++import { type Request, type Response } from "express";
++import { hashPassword, comparePassword, generateToken } from "../middleware/auth";
++import type { IUser } from "../types/User";
++import fs from "fs/promises";
++import path from "path";
++
++// * Register
++
++export const registerUser = async (req: Request, res: Response) => {
++  const { email, password, cif, fname, lname, mobile } = req.body;
++  const dataPath = path.join("src/controllers/userControllers.ts", "..", "data", "data.json"); // Fixed path
++
++  // Validate fields
++  if (!email) return res.status(400).json({ error: "Email is required" });
++  if (!password) return res.status(400).json({ error: "Password is required" });
++  if (!cif) return res.status(400).json({ error: "cif is required" });
++  if (!fname) return res.status(400).json({ error: "fname is required" });
++  if (!lname) return res.status(400).json({ error: "lname is required" });
++  if (!mobile) return res.status(400).json({ error: "mobile is required" });
++
++  try {
++    // Read or initialize data
++    let data: string;
++    try {
++      data = await fs.readFile(dataPath, "utf-8");
++    } catch (readError) {
++      if ((readError as NodeJS.ErrnoException).code === "ENOENT") {
++        data = "[]"; // Default to empty array
++      } else {
++        throw readError;
++      }
++    }
++
++    const users: IUser[] = JSON.parse(data);
++
++    // Check for existing user
++    if (users.some((u) => u.email === email)) {
++      return res.status(400).json({ error: "User already exists" });
++    }
++
++    // Hash password and add user
++    const passwordHash = await hashPassword(password);
++    users.push({ email, password: passwordHash, cif, fname, lname, mobile });
++
++    // Ensure directory exists
++    await fs.mkdir(path.dirname(dataPath), { recursive: true });
++
++    // Write to file
++    await fs.writeFile(dataPath, JSON.stringify(users, null, 2));
++    return res.status(201).json({ message: "User registered successfully" });
++  } catch (error) {
++    console.error("Registration error:", error);
++    return res.status(500).json({ error: "Registration failed" });
++  }
++};
++
++// * Login
++export const loginUser = async (req: Request, res: Response) => {
++  const { email, password } = req.body;
++  const dataPath = path.join("src/controllers/userControllers.ts", "..", "data", "data.json"); // Same path as register
++
++  // Validate fields
++  if (!email) return res.status(400).json({ error: "Email is required" });
++  if (!password) return res.status(400).json({ error: "Password is required" });
++
++  try {
++    // Read or initialize data
++    let data: string;
++    try {
++      data = await fs.readFile(dataPath, "utf-8");
++    } catch (readError) {
++      if ((readError as NodeJS.ErrnoException).code === "ENOENT") {
++        data = "[]"; // Default to empty array
++      } else {
++        throw readError;
++      }
++    }
++
++    const users: IUser[] = JSON.parse(data);
++
++    // Find user by email
++    const user = users.find((u: IUser) => u.email === email);
++    if (!user) return res.status(401).json({ error: "Invalid user" });
++
++    // Compare password with hashed password
++    const passwordMatch = await comparePassword(password, user.password);
++    if (!passwordMatch) return res.status(401).json({ error: "Invalid Password" });
++
++    // Generate and return token
++    const token = generateToken(user);
++    return res.json({ token });
++  } catch (error) {
++    console.error("Login error:", error);
++    return res.status(500).json({ error: "Login failed" });
++  }
++};
+diff --git a/src/middleware/auth.ts b/src/middleware/auth.ts
+new file mode 100644
+index 0000000..db48ca4
+--- /dev/null
++++ b/src/middleware/auth.ts
+@@ -0,0 +1,36 @@
++import express from "express";
++import type { IUser } from "../types/User";
++import bcrypt from "bcrypt";
++import jwt from "jsonwebtoken";
++import dotenv from "dotenv";
++dotenv.config();
++
++const app = express();
++
++const JWT_SECRET = process.env.JWT_SECRET;
++if (!JWT_SECRET) {
++  throw new Error("JWT_SECRET is not defined in environment variables");
++}
++const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
++const SALT_ROUNDS = parseInt(process.env.BCRYPT_SALT_ROUNDS || "10");
++app.use(express.json());
++
++//* Hash a password
++export const hashPassword = async (password: string): Promise<string> => {
++  return await bcrypt.hash(password, SALT_ROUNDS);
++};
++
++//* Compare a password with its hash
++export const comparePassword = async (password: string, hash: string): Promise<boolean> => {
++  return await bcrypt.compare(password, hash);
++};
++
++//* Generate JWT token
++export const generateToken = (user: IUser): string => {
++  return jwt.sign({ user }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
++};
++
++//* Verify JWT token
++export const verifyToken = (token: string): { userId: string; username: string } => {
++  return jwt.verify(token, JWT_SECRET) as { userId: string; username: string };
++};
+diff --git a/src/routes/userRoutes.ts b/src/routes/userRoutes.ts
+new file mode 100644
+index 0000000..8ab1738
+--- /dev/null
++++ b/src/routes/userRoutes.ts
+@@ -0,0 +1,9 @@
++import { Router } from "express";
++import { registerUser, loginUser } from "../controllers/userControllers";
++
++const router = Router();
++
++router.post("/register", registerUser);
++router.post("/login", loginUser);
++
++export default router;
+diff --git a/src/server.ts b/src/server.ts
+new file mode 100644
+index 0000000..1503df3
+--- /dev/null
++++ b/src/server.ts
+@@ -0,0 +1,15 @@
++import express from "express";
++import userRoutes from "./routes/userRoutes";
++import dotenv from "dotenv";
++dotenv.config();
++
++const app = express();
++const PORT = process.env.PORT || 3000;
++
++app.use(express.json());
++
++app.use("/api/users", userRoutes);
++
++app.listen(PORT, () => {
++  console.log(`Express server running on port ${PORT}`);
++});
+diff --git a/src/types/User.ts b/src/types/User.ts
+new file mode 100644
+index 0000000..da51a6f
+--- /dev/null
++++ b/src/types/User.ts
+@@ -0,0 +1,8 @@
++export interface IUser {
++  email: string;
++  password: string;
++  cif: string;
++  fname: string;
++  lname: string;
++  mobile: string;
++}
+diff --git a/tsconfig.server.json b/tsconfig.server.json
+new file mode 100644
+index 0000000..1dc9de4
+--- /dev/null
++++ b/tsconfig.server.json
+@@ -0,0 +1,25 @@
++{
++  "compilerOptions": {
++    "target": "ES2022",
++    "module": "NodeNext",
++    "moduleResolution": "NodeNext",
++    "esModuleInterop": true,
++    "allowSyntheticDefaultImports": true,
++    "strict": true,
++    "outDir": "dist",
++    "sourceMap": true,
++    "resolveJsonModule": true,
++    "skipLibCheck": true,
++    "forceConsistentCasingInFileNames": true,
++    "allowJs": true,
++    "checkJs": false,
++    "isolatedModules": true
++  },
++  "ts-node": {
++    "esm": true,
++    "experimentalSpecifierResolution": "node"
++  },
++  "include": ["src/**/*.ts"],
++  "exclude": ["node_modules"]
++}
++
+-- 
+2.46.0
+
