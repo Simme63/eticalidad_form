@@ -1,4 +1,5 @@
 import { useAtom } from "jotai";
+import { LayoutDashboard, PlusCircle, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { userAtom } from "../atoms/authAtom";
 import { supabase } from "../supabase/client";
@@ -29,49 +30,72 @@ function MainView() {
 
 	if (!user) {
 		return (
-			<>
-				<Register />
-				<Login />
-			</>
+			<div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-sky-100 to-sky-300">
+				<div className="bg-white rounded-2xl shadow-2xl p-10 border border-sky-200 w-full max-w-4xl">
+					<h2 className="text-3xl font-bold text-center text-sky-700 mb-8">
+						Welcome — Please Register or Log In
+					</h2>
+					<div className="flex flex-col md:flex-row gap-8">
+						<div className="flex-1 min-w-[280px]">
+							<Register />
+						</div>
+						<div className="flex-1 min-w-[280px] border-t md:border-t-0 md:border-l border-sky-100 md:pl-8 pt-8 md:pt-0">
+							<Login />
+						</div>
+					</div>
+				</div>
+			</div>
 		);
 	}
 
 	return (
-		<div>
-			<div className="flex gap-2 mb-4">
+		<div className="max-w-5xl mx-auto p-4">
+			{/* Tab Nav */}
+			<div className="flex justify-center gap-6 mb-8">
 				<button
-					className={`px-4 py-2 rounded ${
+					className={`flex flex-col items-center p-4 rounded-2xl transition ${
 						activeTab === "overview"
-							? "bg-blue-600 text-white"
-							: "bg-gray-200"
+							? "bg-sky-600 text-white shadow-lg"
+							: "bg-gray-100 text-sky-700 hover:bg-sky-50"
 					}`}
 					onClick={() => setActiveTab("overview")}
 				>
-					Overview
+					<LayoutDashboard size={32} />
+					<span className="text-sm font-medium mt-1">Overview</span>
 				</button>
+
 				<button
-					className={`px-4 py-2 rounded ${
+					className={`flex flex-col items-center p-4 rounded-2xl transition ${
 						activeTab === "request"
-							? "bg-blue-600 text-white"
-							: "bg-gray-200"
+							? "bg-sky-600 text-white shadow-lg"
+							: "bg-gray-100 text-sky-700 hover:bg-sky-50"
 					}`}
 					onClick={() => setActiveTab("request")}
 				>
-					New Request
+					<PlusCircle size={32} />
+					<span className="text-sm font-medium mt-1">
+						New Request
+					</span>
 				</button>
+
 				{role === "admin" && (
 					<button
-						className={`px-4 py-2 rounded ${
+						className={`flex flex-col items-center p-4 rounded-2xl transition ${
 							activeTab === "admin"
-								? "bg-blue-600 text-white"
-								: "bg-gray-200"
+								? "bg-sky-600 text-white shadow-lg"
+								: "bg-gray-100 text-sky-700 hover:bg-sky-50"
 						}`}
 						onClick={() => setActiveTab("admin")}
 					>
-						Admin Panel
+						<ShieldCheck size={32} />
+						<span className="text-sm font-medium mt-1">
+							Admin Panel
+						</span>
 					</button>
 				)}
 			</div>
+
+			{/* Tab content */}
 			{activeTab === "overview" && <Overview />}
 			{activeTab === "request" && <RequestForm />}
 			{activeTab === "admin" && role === "admin" && <AdminPanel />}
