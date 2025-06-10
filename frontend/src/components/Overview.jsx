@@ -1,4 +1,3 @@
-// Overview.jsx
 import { useEffect, useState } from "react";
 import { supabase } from "../supabase/client";
 
@@ -7,7 +6,7 @@ const STATUS_OPTIONS = ["pending", "approved", "paid"];
 export default function Overview() {
 	const [requests, setRequests] = useState([]);
 	const [user, setUser] = useState(null);
-	const [role, setRole] = useState("user");
+	const [, setRole] = useState("user");
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
@@ -33,14 +32,12 @@ export default function Overview() {
 
 			setRole(profile?.role || "user");
 
-			// Build query and chain all modifiers before await
-			let query = supabase.from("requests").select("*");
-			if (profile?.role !== "admin") {
-				query = query.eq("user_id", user.id);
-			}
-			const { data, error } = await query.order("submitted_at", {
-				ascending: false,
-			});
+			// Get only requests tied to logged-in user
+			const { data, error } = await supabase
+				.from("requests")
+				.select("*")
+				.eq("user_id", user.id)
+				.order("submitted_at", { ascending: false });
 
 			if (error) console.error("Error loading requests:", error);
 
@@ -50,18 +47,6 @@ export default function Overview() {
 
 		fetchUserAndRequests();
 	}, []);
-
-	const handleStatusChange = async (id, newStatus) => {
-		await supabase
-			.from("requests")
-			.update({ status: newStatus })
-			.eq("id", id);
-		setRequests((prev) =>
-			prev.map((req) =>
-				req.id === id ? { ...req, status: newStatus } : req
-			)
-		);
-	};
 
 	if (loading) return <div className="text-center mt-8">Loading...</div>;
 	if (!user)
@@ -80,71 +65,42 @@ export default function Overview() {
 				<table className="min-w-full border">
 					<thead>
 						<tr className="bg-gray-100">
+							<th className="p-2 border">Status</th>
 							<th className="p-2 border">Brand</th>
 							<th className="p-2 border">Invoice #</th>
 							<th className="p-2 border">Part #</th>
 							<th className="p-2 border">Quantity</th>
 							<th className="p-2 border">Reason</th>
-							<th className="p-2 border">Status</th>
-							{role === "admin" && (
-								<th className="p-2 border">Actions</th>
-							)}
 						</tr>
 					</thead>
 					<tbody>
-						{requests.map((req) => (
-							<tr key={req.id}>
-								<td className="p-2 border">{req.brand}</td>
-								<td className="p-2 border">
-									{req.delivery_note_or_invoice_number}
-								</td>
-								<td className="p-2 border">
-									{req.part_number}
-								</td>
-								<td className="p-2 border">{req.quantity}</td>
-								<td className="p-2 border">
-									{req.reason_for_return}
-								</td>
-								<td className="p-2 border capitalize">
-									{req.status || "pending"}
-								</td>
-								{role === "admin" && (
-									<td className="p-2 border">
-										<select
-											value={req.status || "pending"}
-											onChange={(e) =>
-												handleStatusChange(
-													req.id,
-													e.target.value
-												)
-											}
-											className="border rounded px-2 py-1"
-										>
-											{STATUS_OPTIONS.map((status) => (
-												<option
-													key={status}
-													value={status}
-												>
-													{status
-														.charAt(0)
-														.toUpperCase() +
-														status.slice(1)}
-												</option>
-											))}
-										</select>
-									</td>
-								)}
-							</tr>
-						))}
-						{requests.length === 0 && (
+						{requests.length === 0 ? (
 							<tr>
-								<td
-									colSpan={role === "admin" ? 7 : 6}
-									className="text-center p-4"
-								>
+								<td colSpan="6" className="text-center p-4">
 									No requests found.
 								</td>
 							</tr>
+						) : (
+							requests.map((req) => (
+								<tr key={req.id}>
+									<td className="p-2 border capitalize">
+										{req.status || "pending"}
+									</td>
+									<td className="p-2 border">{req.brand}</td>
+									<td className="p-2 border">
+										{req.delivery_note_or_invoice_number}
+									</td>
+									<td className="p-2 border">
+										{req.part_number}
+									</td>
+									<td className="p-2 border">
+										{req.quantity}
+									</td>
+									<td className="p-2 border">
+										{req.reason_for_return}
+									</td>
+								</tr>
+							))
 						)}
 					</tbody>
 				</table>

@@ -54,18 +54,6 @@ function MainView() {
 			<div className="flex justify-center gap-6 mb-8">
 				<button
 					className={`flex flex-col items-center p-4 rounded-2xl transition ${
-						activeTab === "overview"
-							? "bg-sky-600 text-white shadow-lg"
-							: "bg-gray-100 text-sky-700 hover:bg-sky-50"
-					}`}
-					onClick={() => setActiveTab("overview")}
-				>
-					<LayoutDashboard size={32} />
-					<span className="text-sm font-medium mt-1">Overview</span>
-				</button>
-
-				<button
-					className={`flex flex-col items-center p-4 rounded-2xl transition ${
 						activeTab === "request"
 							? "bg-sky-600 text-white shadow-lg"
 							: "bg-gray-100 text-sky-700 hover:bg-sky-50"
@@ -76,6 +64,18 @@ function MainView() {
 					<span className="text-sm font-medium mt-1">
 						New Request
 					</span>
+				</button>
+
+				<button
+					className={`flex flex-col items-center p-4 rounded-2xl transition ${
+						activeTab === "overview"
+							? "bg-sky-600 text-white shadow-lg"
+							: "bg-gray-100 text-sky-700 hover:bg-sky-50"
+					}`}
+					onClick={() => setActiveTab("overview")}
+				>
+					<LayoutDashboard size={32} />
+					<span className="text-sm font-medium mt-1">Overview</span>
 				</button>
 
 				{role === "admin" && (
@@ -96,8 +96,8 @@ function MainView() {
 			</div>
 
 			{/* Tab content */}
-			{activeTab === "overview" && <Overview />}
 			{activeTab === "request" && <RequestForm />}
+			{activeTab === "overview" && <Overview />}
 			{activeTab === "admin" && role === "admin" && <AdminPanel />}
 		</div>
 	);
