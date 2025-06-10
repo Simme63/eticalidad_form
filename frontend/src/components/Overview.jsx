@@ -1,4 +1,3 @@
-// Overview.jsx
 import { useEffect, useState } from "react";
 import { supabase } from "../supabase/client";
 
@@ -53,7 +52,7 @@ export default function Overview() {
   };
 
   if (loading) return <div className="text-center mt-8">Cargando...</div>;
-  if (!user) return <div className="text-center mt-8">Inicia sesión para ver tus solicitudes</div>;
+  if (!user) return <div className="text-center mt-8">Inicia sesión para ver tus solicitudes.</div>;
 
   return (
     <div className="max-w-3xl mx-auto mt-8 p-4 bg-white rounded shadow">
@@ -72,36 +71,37 @@ export default function Overview() {
             </tr>
           </thead>
           <tbody>
-            {requests.map((req) => (
-              <tr key={req.id}>
-                <td className="p-2 border">{req.brand}</td>
-                <td className="p-2 border">{req.delivery_note_or_invoice_number}</td>
-                <td className="p-2 border">{req.part_number}</td>
-                <td className="p-2 border">{req.quantity}</td>
-                <td className="p-2 border">{req.reason_for_return}</td>
-                <td className="p-2 border capitalize">{req.status || "pendiente"}</td>
-                {role === "admin" && (
-                  <td className="p-2 border">
-                    <select
-                      value={req.status || "pendiente"}
-                      onChange={(e) => handleStatusChange(req.id, e.target.value)}
-                      className="border rounded px-2 py-1">
-                      {STATUS_OPTIONS.map((status) => (
-                        <option key={status} value={status}>
-                          {status.charAt(0).toUpperCase() + status.slice(1)}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                )}
-              </tr>
-            ))}
-            {requests.length === 0 && (
+            {requests.length === 0 ? (
               <tr>
                 <td colSpan={role === "admin" ? 7 : 6} className="text-center p-4">
                   No hay solicitudes.
                 </td>
               </tr>
+            ) : (
+              requests.map((req) => (
+                <tr key={req.id}>
+                  <td className="p-2 border">{req.brand}</td>
+                  <td className="p-2 border">{req.delivery_note_or_invoice_number}</td>
+                  <td className="p-2 border">{req.part_number}</td>
+                  <td className="p-2 border">{req.quantity}</td>
+                  <td className="p-2 border">{req.reason_for_return}</td>
+                  <td className="p-2 border capitalize">{req.status || "pendiente"}</td>
+                  {role === "admin" && (
+                    <td className="p-2 border">
+                      <select
+                        value={req.status || "pendiente"}
+                        onChange={(e) => handleStatusChange(req.id, e.target.value)}
+                        className="border rounded px-2 py-1">
+                        {STATUS_OPTIONS.map((status) => (
+                          <option key={status} value={status}>
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                  )}
+                </tr>
+              ))
             )}
           </tbody>
         </table>
