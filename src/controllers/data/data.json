@@ -1,0 +1,26 @@
+[
+  {
+    "email": "user2@me.com",
+    "password": "$2b$10$mZdgVGOXFheQMT4p3kjUROOBYO/TPI0sHpw8/i8omSY0F4O8xLufK",
+    "cif": "1234567890",
+    "fname": "userr",
+    "lname": "test2",
+    "mobile": "123456789"
+  },
+  {
+    "email": "user@me.com",
+    "password": "$2b$10$bIOVupo0lEUtWzGtCDsrXuRc.B8N33kTlFsNeu8wHlkDPsCevy.Fa",
+    "cif": "1234567890",
+    "fname": "user",
+    "lname": "test",
+    "mobile": "123456789"
+  },
+  {
+    "email": "user123@me.com",
+    "password": "$2b$10$DOGi9yq4je7Udk2LAsqguOa7IcxgXHc6DdDJYALhKcrmuqnCqvX6G",
+    "cif": "1234567890",
+    "fname": "user",
+    "lname": "test",
+    "mobile": "123456789"
+  }
+]

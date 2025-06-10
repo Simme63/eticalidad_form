@@ -5,36 +5,27 @@ function AdminPanel() {
   const [pendingUsers, setPendingUsers] = useState([]);
 
   const fetchPendingUsers = async () => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("status", "pending");
+    const { data, error } = await supabase.from("profiles").select("*").eq("status", "pending");
 
     if (error) {
-      console.error("Error fetching users:", error);
+      console.error("Error obteniendo usuarios:", error);
     } else {
       setPendingUsers(data);
     }
   };
 
   const approveUser = async (userId) => {
-    const { error } = await supabase
-      .from("profiles")
-      .update({ status: "approved" })
-      .eq("id", userId);
+    const { error } = await supabase.from("profiles").update({ status: "approved" }).eq("id", userId);
 
     if (error) {
-      console.error("Error approving user:", error);
+      console.error("Error aprobando usuario:", error);
     } else {
       fetchPendingUsers();
     }
   };
 
   const rejectUser = async (userId) => {
-    const { error } = await supabase
-      .from("profiles")
-      .delete()
-      .eq("id", userId);
+    const { error } = await supabase.from("profiles").delete().eq("id", userId);
 
     if (error) {
       console.error("Error rejecting user:", error);
@@ -49,13 +40,13 @@ function AdminPanel() {
 
   return (
     <div>
-      <h2>Pending User Approvals</h2>
-      {pendingUsers.length === 0 && <p>No pending users.</p>}
+      <h2>Aprobaciones de Usuario Pendientes</h2>
+      {pendingUsers.length === 0 && <p>No hay usuarios pendientes.</p>}
       {pendingUsers.map((user) => (
         <div key={user.id}>
           <p>{user.email}</p>
-          <button onClick={() => approveUser(user.id)}>Approve</button>
-          <button onClick={() => rejectUser(user.id)}>Reject</button>
+          <button onClick={() => approveUser(user.id)}>Aprobar</button>
+          <button onClick={() => rejectUser(user.id)}>Rechazar</button>
         </div>
       ))}
     </div>
