@@ -1,5 +1,5 @@
 import { useAtom } from "jotai";
-import { LayoutDashboard, PlusCircle, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, LogOut, PlusCircle, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { userAtom } from "../atoms/authAtom";
 import { supabase } from "../supabase/client";
@@ -10,8 +10,8 @@ import Register from "./Register";
 import RequestForm from "./RequestForm";
 
 function MainView() {
-	const [user] = useAtom(userAtom);
-	const [activeTab, setActiveTab] = useState("overview");
+	const [user, setUser] = useAtom(userAtom);
+	const [activeTab, setActiveTab] = useState("request");
 	const [role, setRole] = useState(null);
 
 	useEffect(() => {
@@ -27,6 +27,16 @@ function MainView() {
 		};
 		fetchRole();
 	}, [user]);
+
+	const handleLogout = async () => {
+		const { error } = await supabase.auth.signOut();
+		if (error) {
+			console.error("Error logging out:", error);
+		} else {
+			setUser(null);
+			setActiveTab("request"); // Reset tab on logout, optional
+		}
+	};
 
 	if (!user) {
 		return (
@@ -49,7 +59,17 @@ function MainView() {
 	}
 
 	return (
-		<div className="max-w-5xl mx-auto p-4">
+		<div className="max-w-5xl mx-auto p-4 relative">
+			{/* Logout Button top-right */}
+			<button
+				onClick={handleLogout}
+				className="absolute top-4 right-4 flex items-center gap-1 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+				aria-label="Log out"
+			>
+				<LogOut size={18} />
+				Cerrar sesión
+			</button>
+
 			{/* Tab Nav */}
 			<div className="flex justify-center gap-6 mb-8">
 				<button
