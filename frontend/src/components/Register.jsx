@@ -7,6 +7,7 @@ function Register() {
   const [repeatPassword, setRepeatPassword] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [cif, setCif] = useState("");
+  const [address, setAddress] = useState("");
   const [error, setError] = useState(null);
 
   const handleRegister = async (e) => {
@@ -71,6 +72,17 @@ function Register() {
           placeholder="CIF"
           value={cif}
           onChange={(e) => setCif(e.target.value)}
+          className="w-full px-4 py-2 border border-sky-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sky-800 text-sm mb-1">Dirección</label>
+        <input
+          type="text"
+          placeholder="Calle y número"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
           className="w-full px-4 py-2 border border-sky-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 transition"
         />
       </div>
