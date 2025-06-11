@@ -72,7 +72,9 @@ export default function Overview() {
                   <td className="p-2 border">{req.reason_for_return}</td>
                   <td className="p-2 border capitalize">{req.status || "pendiente"}</td>
                   <td className="p-2 border capitalize">
-                    <button type="button" className="border-2 p-4 rounded-2xl bg-sky-600 text-white shadow-lg">
+                    <button
+                      type="button"
+                      className="border-2 p-4 rounded-2xl bg-sky-600 text-white shadow-lg transition-all duration-150 hover:bg-white hover:text-sky-600 active:bg-sky-600 active:text-white">
                       Obtener Copia
                     </button>
                   </td>
