@@ -155,7 +155,7 @@ export default function Overview() {
 																	req
 																)
 															}
-															className="bg-red-600 hover:bg-red-500 text-white font-semibold py-1 px-3 rounded transition"
+															className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 px-3 rounded transition"
 														>
 															Descargar
 														</button>

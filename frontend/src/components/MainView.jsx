@@ -63,7 +63,7 @@ function MainView() {
 			{/* Logout Button top-right */}
 			<button
 				onClick={handleLogout}
-				className="absolute top-4 right-4 flex items-center gap-1 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+				className="absolute top-4 right-4 flex items-center gap-1 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
 				aria-label="Log out"
 			>
 				<LogOut size={18} />
