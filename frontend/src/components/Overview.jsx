@@ -1,10 +1,84 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabase/client";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import receiptTemplate from "../utils/PRUEBA.pdf"; //! test pdf
 
 export default function Overview() {
   const [requests, setRequests] = useState([]);
   const [user, setUser] = useState(null);
+  const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const handleDownload = async () => {
+    const existingPdfBytes = await fetch(receiptTemplate).then((res) => res.arrayBuffer());
+
+    const pdfDoc = await PDFDocument.load(existingPdfBytes);
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+    const pages = pdfDoc.getPages();
+    const firstPage = pages[0];
+    const { height } = firstPage.getSize();
+
+    // Draw text with userData
+    firstPage.drawText(`Compañía: ${user.companyName}`, {
+      x: 50,
+      y: height - 100,
+      size: 14,
+      font,
+      color: rgb(0, 0, 0),
+    });
+
+    firstPage.drawText(`Correo electrónico: ${user.email}`, {
+      x: 50,
+      y: height - 120,
+      size: 14,
+      font,
+      color: rgb(0, 0, 0),
+    });
+    firstPage.drawText(`CIF: ${user.cif}`, {
+      x: 50,
+      y: height - 140,
+      size: 14,
+      font,
+      color: rgb(0, 0, 0),
+    });
+    firstPage.drawText(`Dirección: ${user.address}`, {
+      x: 50,
+      y: height - 160,
+      size: 14,
+      font,
+      color: rgb(0, 0, 0),
+    });
+
+    // 💾 Save and download the PDF
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `recibo-${user.email.split("@")[0]}.pdf`;
+    link.click();
+  };
+  useEffect(() => {
+    const getUserData = async () => {
+      const { data, error } = await supabase.from("profiles").select("*");
+      console.log("data: ", data);
+      setUserData(data);
+      const match = data.find((item) => item.email === user.email);
+      if (match) {
+        console.log("Email match found:", match);
+        user.companyName = match.company_name;
+        user.cif = match.cif;
+        user.address = match.address;
+        console.log("user: ", user);
+      } else {
+        console.log("No matching email found.");
+      }
+      if (error) {
+        console.log(error);
+      }
+    };
+    getUserData();
+  }, [user]);
 
   useEffect(() => {
     const fetchUserAndRequests = async () => {
@@ -74,7 +148,8 @@ export default function Overview() {
                   <td className="p-2 border capitalize">
                     <button
                       type="button"
-                      className="border-2 p-4 rounded-2xl bg-sky-600 text-white shadow-lg transition-all duration-150 hover:bg-white hover:text-sky-600 active:bg-sky-600 active:text-white">
+                      className="border-2 p-4 rounded-2xl bg-sky-600 text-white shadow-lg transition-all duration-150 hover:bg-white hover:text-sky-600 active:bg-sky-600 active:text-white"
+                      onClick={() => handleDownload(user)}>
                       Obtener Copia
                     </button>
                   </td>
