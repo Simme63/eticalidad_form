@@ -63,7 +63,7 @@ const Login = () => {
         <label className="block text-sky-800 text-sm mb-1">Correo electrónico</label>
         <input
           type="email"
-          placeholder="you@example.com"
+          placeholder="yo@ejemplo.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="w-full px-4 py-2 border border-sky-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 transition"

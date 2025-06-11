@@ -10,9 +10,10 @@ import Register from "./Register";
 import RequestForm from "./RequestForm";
 
 function MainView() {
-	const [user, setUser] = useAtom(userAtom);
+	const [user] = useAtom(userAtom);
 	const [activeTab, setActiveTab] = useState("request");
 	const [role, setRole] = useState(null);
+	const [authView, setAuthView] = useState(null); // 'login' | 'register' | null
 
 	useEffect(() => {
 		const fetchRole = async () => {
@@ -28,47 +29,81 @@ function MainView() {
 		fetchRole();
 	}, [user]);
 
-	const handleLogout = async () => {
-		const { error } = await supabase.auth.signOut();
-		if (error) {
-			console.error("Error logging out:", error);
-		} else {
-			setUser(null);
-			setActiveTab("request"); // Reset tab on logout, optional
-		}
-	};
-
 	if (!user) {
 		return (
 			<div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-sky-100 to-sky-300">
-				<div className="bg-white rounded-2xl shadow-2xl p-10 border border-sky-200 w-full max-w-4xl">
-					<h2 className="text-3xl font-bold text-center text-sky-700 mb-8">
-						¡Bienvenido! — Por favor, registrate o inicia sesión
+				<div className="bg-white rounded-2xl shadow-2xl p-10 border border-sky-200 w-full max-w-3xl text-center">
+					<h2 className="text-3xl font-bold text-sky-700 mb-8">
+						¡Bienvenido a Repuestos Express!
 					</h2>
-					<div className="flex flex-col md:flex-row gap-8">
-						<div className="flex-1 min-w-[280px]">
-							<Register />
+
+					{!authView && (
+						<div className="space-y-6">
+							<p className="text-lg text-gray-700">
+								¿Ya tienes una cuenta?
+							</p>
+							<button
+								onClick={() => setAuthView("login")}
+								className="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-3 rounded-xl"
+							>
+								Iniciar sesión
+							</button>
+							<p className="text-gray-600">o si no...</p>
+							<button
+								onClick={() => setAuthView("register")}
+								className="w-full bg-gray-100 hover:bg-gray-200 text-sky-700 font-semibold py-3 rounded-xl border border-sky-200"
+							>
+								Registrarse
+							</button>
 						</div>
-						<div className="flex-1 min-w-[280px] border-t md:border-t-0 md:border-l border-sky-100 md:pl-8 pt-8 md:pt-0">
+					)}
+
+					{authView === "login" && (
+						<div className="mt-8">
 							<Login />
+							<button
+								onClick={() => setAuthView(null)}
+								className="mt-6 text-sky-600 hover:underline"
+							>
+								← Volver
+							</button>
 						</div>
-					</div>
+					)}
+
+					{authView === "register" && (
+						<div className="mt-8">
+							<Register />
+							<button
+								onClick={() => setAuthView(null)}
+								className="mt-6 text-sky-600 hover:underline"
+							>
+								← Volver
+							</button>
+						</div>
+					)}
 				</div>
 			</div>
 		);
 	}
 
 	return (
-		<div className="max-w-5xl mx-auto p-4 relative">
-			{/* Logout Button top-right */}
-			<button
-				onClick={handleLogout}
-				className="absolute top-4 right-4 flex items-center gap-1 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-				aria-label="Log out"
-			>
-				<LogOut size={18} />
-				Cerrar sesión
-			</button>
+		<div className="max-w-5xl mx-auto p-4">
+			{/* Top Bar */}
+			<div className="flex justify-between items-center mb-6">
+				<h1 className="text-xl font-bold text-sky-700">
+					Repuestos Express
+				</h1>
+				<button
+					onClick={async () => {
+						await supabase.auth.signOut();
+						window.location.reload();
+					}}
+					className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-sky-700 font-semibold py-2 px-4 rounded-lg border border-sky-200"
+				>
+					<LogOut size={18} />
+					Cerrar sesión
+				</button>
+			</div>
 
 			{/* Tab Nav */}
 			<div className="flex justify-center gap-6 mb-8">
