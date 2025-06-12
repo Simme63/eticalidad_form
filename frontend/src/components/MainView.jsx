@@ -1,86 +1,46 @@
-import { useAtom } from "jotai";
 import { LayoutDashboard, LogOut, PlusCircle, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
-import { userAtom } from "../atoms/authAtom";
 import { supabase } from "../supabase/client";
 import AdminPanel from "./AdminPanel";
-import Login from "./Login";
 import Overview from "./Overview";
-import Register from "./Register";
 import RequestForm from "./RequestForm";
 
 function MainView() {
-	const [user] = useAtom(userAtom);
 	const [activeTab, setActiveTab] = useState("request");
 	const [role, setRole] = useState(null);
-	const [authView, setAuthView] = useState(null); // 'login' | 'register' | null
+	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
 		const fetchRole = async () => {
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
+
 			if (user) {
-				const { data: profile } = await supabase
+				const { data: profile, error } = await supabase
 					.from("profiles")
 					.select("role")
 					.eq("id", user.id)
 					.single();
-				setRole(profile?.role || "user");
-			}
-		};
-		fetchRole();
-	}, [user]);
 
-	if (!user) {
+				if (error || !profile) {
+					setRole("user");
+				} else {
+					setRole(profile.role || "user");
+				}
+			}
+
+			setLoading(false);
+		};
+
+		fetchRole();
+	}, []);
+
+	if (loading) {
 		return (
 			<div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-sky-100 to-sky-300">
-				<div className="bg-white rounded-2xl shadow-2xl p-10 border border-sky-200 w-full max-w-3xl text-center">
-					<h2 className="text-3xl font-bold text-sky-700 mb-8">
-						¡Bienvenido a Repuestos Express!
-					</h2>
-
-					{!authView && (
-						<div className="space-y-6">
-							<p className="text-lg text-gray-700">
-								¿Ya tienes una cuenta?
-							</p>
-							<button
-								onClick={() => setAuthView("login")}
-								className="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-3 rounded-xl"
-							>
-								Iniciar sesión
-							</button>
-							<p className="text-gray-600">o si no...</p>
-							<button
-								onClick={() => setAuthView("register")}
-								className="w-full bg-gray-100 hover:bg-gray-200 text-sky-700 font-semibold py-3 rounded-xl border border-sky-200"
-							>
-								Registrarse
-							</button>
-						</div>
-					)}
-
-					{authView === "login" && (
-						<div className="mt-8">
-							<Login />
-							<button
-								onClick={() => setAuthView(null)}
-								className="mt-6 text-sky-600 hover:underline"
-							>
-								← Volver
-							</button>
-						</div>
-					)}
-
-					{authView === "register" && (
-						<div className="mt-8">
-							<Register />
-							<button
-								onClick={() => setAuthView(null)}
-								className="mt-6 text-sky-600 hover:underline"
-							>
-								← Volver
-							</button>
-						</div>
-					)}
+				<div className="text-sky-600 text-lg font-semibold">
+					Cargando...
 				</div>
 			</div>
 		);

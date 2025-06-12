@@ -3,9 +3,16 @@ import { supabase } from "../supabase/client";
 
 const STATUS_OPTIONS = ["pending", "approved", "paid"];
 
+const STATUS_COLORS = {
+	pending: "rgba(250, 204, 21, 0.3)", // softer yellow
+	approved: "rgba(239, 68, 68, 0.3)", // softer red
+	paid: "rgba(34, 197, 94, 0.3)", // softer green
+};
+
 export default function AdminPanel() {
+	// Requests state
 	const [requests, setRequests] = useState([]);
-	const [loading, setLoading] = useState(true);
+	const [loadingRequests, setLoadingRequests] = useState(true);
 	const [filters, setFilters] = useState({
 		company: "",
 		email: "",
@@ -14,24 +21,87 @@ export default function AdminPanel() {
 		date: "",
 	});
 
-	useEffect(() => {
-		const fetchData = async () => {
-			setLoading(true);
+	// Pending users state
+	const [pendingUsers, setPendingUsers] = useState([]);
+	const [loadingUsers, setLoadingUsers] = useState(true);
 
+	// Fetch requests
+	useEffect(() => {
+		async function fetchRequests() {
+			setLoadingRequests(true);
 			const { data, error } = await supabase
 				.from("requests")
 				.select("*, profiles:user_id ( email, company_name )")
 				.order("submitted_at", { ascending: false });
-
 			if (error) console.error("Error fetching requests:", error);
 			else setRequests(data || []);
-
-			setLoading(false);
-		};
-
-		fetchData();
+			setLoadingRequests(false);
+		}
+		fetchRequests();
 	}, []);
 
+	// Fetch pending users
+	useEffect(() => {
+		async function fetchPendingUsers() {
+			setLoadingUsers(true);
+			const { data, error } = await supabase
+				.from("profiles")
+				.select("id, company_name, email, status")
+				.eq("status", "pending")
+				.order("company_name", { ascending: true });
+			if (error) console.error("Error fetching pending users:", error);
+			else setPendingUsers(data || []);
+			setLoadingUsers(false);
+		}
+		fetchPendingUsers();
+	}, []);
+
+	// Approve user
+	const approveUser = async (userId) => {
+		const { error } = await supabase
+			.from("profiles")
+			.update({ status: "approved" })
+			.eq("id", userId);
+		if (error) {
+			console.error("Error approving user:", error);
+			alert("Error al aprobar el usuario");
+		} else {
+			setPendingUsers((prev) => prev.filter((u) => u.id !== userId));
+			alert("Usuario aprobado");
+		}
+	};
+
+	const denyUser = async (userId) => {
+		// Delete from profiles
+		const { error: profileError } = await supabase
+			.from("profiles")
+			.delete()
+			.eq("id", userId);
+
+		if (profileError) {
+			console.error("Error deleting from profiles:", profileError);
+			alert("Error eliminando perfil");
+			return;
+		}
+
+		// Delete from auth.users (needs service role key)
+		const { error: authError } = await supabase.auth.admin.deleteUser(
+			userId
+		);
+
+		if (authError) {
+			console.error("Error deleting from auth.users:", authError);
+			alert("Error eliminando usuario");
+			return;
+		}
+
+		// Remove user from local state
+		setPendingUsers((prev) => prev.filter((u) => u.id !== userId));
+
+		alert("Usuario denegado y eliminado");
+	};
+
+	// Update request status
 	const handleStatusChange = async (id, newStatus) => {
 		const { error } = await supabase
 			.from("requests")
@@ -46,11 +116,12 @@ export default function AdminPanel() {
 			);
 	};
 
+	// Download document placeholder
 	const downloadDocument = (id) => {
-		// replace with real download link logic if stored in Supabase Storage or URL field
 		alert(`Descargando documento para solicitud ${id}`);
 	};
 
+	// Filter requests by status and filters
 	const filteredRequests = (status) => {
 		return requests
 			.filter((r) => (r.status || "pending") === status)
@@ -84,10 +155,51 @@ export default function AdminPanel() {
 			);
 	};
 
-	if (loading) return <div className="text-center mt-8">Cargando...</div>;
+	if (loadingRequests || loadingUsers)
+		return <div className="text-center mt-8">Cargando...</div>;
 
 	return (
 		<div className="max-w-7xl mx-auto mt-8 p-4 bg-white rounded shadow space-y-10">
+			{/* Pending Users Approval Section */}
+			{pendingUsers.length > 0 && (
+				<div className="mb-12 border border-yellow-400 rounded p-4">
+					<h2 className="text-2xl font-bold mb-4 text-yellow-700">
+						Usuarios Pendientes de Aprobación
+					</h2>
+					{pendingUsers.map((user) => (
+						<div
+							key={user.id}
+							className="flex flex-col md:flex-row md:items-center justify-between border border-yellow-300 rounded p-3 mb-3"
+						>
+							<div className="mb-2 md:mb-0">
+								<div>
+									<strong>Empresa:</strong>{" "}
+									{user.company_name || "(no especificado)"}
+								</div>
+								<div>
+									<strong>Email:</strong> {user.email}
+								</div>
+							</div>
+							<div className="flex space-x-3">
+								<button
+									onClick={() => approveUser(user.id)}
+									className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+								>
+									Aprobar
+								</button>
+								<button
+									onClick={() => denyUser(user.id)}
+									className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+								>
+									Denegar
+								</button>
+							</div>
+						</div>
+					))}
+				</div>
+			)}
+
+			{/* Filters */}
 			<div>
 				<h2 className="text-2xl font-bold mb-6">Filtros</h2>
 				<div className="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -141,10 +253,22 @@ export default function AdminPanel() {
 				</div>
 			</div>
 
+			{/* Requests sections by status */}
 			{STATUS_OPTIONS.map((status) => (
-				<div key={status}>
-					<h2 className="text-2xl font-bold mb-4">
-						{status.charAt(0).toUpperCase() + status.slice(1)}
+				<div
+					key={status}
+					className="rounded border"
+					style={{
+						borderColor: STATUS_COLORS[status],
+						backgroundColor: STATUS_COLORS[status],
+					}}
+				>
+					<h2 className="text-2xl font-bold mb-4 capitalize text-gray-800">
+						{status === "pending"
+							? "Pendiente"
+							: status === "approved"
+							? "Aprobado"
+							: "Pagado"}
 					</h2>
 					<div className="overflow-x-auto">
 						<table className="min-w-full border table-fixed">
@@ -157,40 +281,35 @@ export default function AdminPanel() {
 									<th className="p-2 border">N° Factura</th>
 									<th className="p-2 border">N° Parte</th>
 									<th className="p-2 border">Cantidad</th>
-									<th className="p-2 border">Motivo</th>
 									<th className="p-2 border">Fecha</th>
-									{status === "approved" && (
-										<th className="p-2 border">
-											Documento
-										</th>
-									)}
+									<th className="p-2 border w-32">
+										Documento
+									</th>
 								</tr>
 							</thead>
 							<tbody>
 								{filteredRequests(status).length === 0 ? (
 									<tr>
 										<td
-											colSpan="{status === 'approved' ? 10 : 9}"
-											className="text-center p-4"
+											colSpan={9}
+											className="text-center p-3 border italic text-gray-500"
 										>
-											No se encontraron solicitudes.
+											No hay solicitudes {status}
 										</td>
 									</tr>
 								) : (
-									filteredRequests(status).map((req) => (
-										<tr key={req.id}>
+									filteredRequests(status).map((request) => (
+										<tr key={request.id}>
 											<td className="p-2 border">
 												<select
-													value={
-														req.status || "pending"
-													}
+													value={request.status}
 													onChange={(e) =>
 														handleStatusChange(
-															req.id,
+															request.id,
 															e.target.value
 														)
 													}
-													className="border rounded px-2 py-1"
+													className="w-full border rounded px-1"
 												>
 													{STATUS_OPTIONS.map(
 														(opt) => (
@@ -210,46 +329,48 @@ export default function AdminPanel() {
 												</select>
 											</td>
 											<td className="p-2 border">
-												{req.profiles?.company_name ||
-													"N/A"}
+												{request.profiles
+													?.company_name ||
+													"(no especificado)"}
 											</td>
 											<td className="p-2 border">
-												{req.profiles?.email || "N/A"}
+												{request.profiles?.email || "-"}
 											</td>
 											<td className="p-2 border">
-												{req.brand}
+												{request.brand || "-"}
 											</td>
 											<td className="p-2 border">
-												{
-													req.delivery_note_or_invoice_number
-												}
+												{request.invoice_number || "-"}
 											</td>
 											<td className="p-2 border">
-												{req.part_number}
+												{request.part_number || "-"}
 											</td>
 											<td className="p-2 border">
-												{req.quantity}
+												{request.quantity || "-"}
 											</td>
 											<td className="p-2 border">
-												{req.reason_for_return}
+												{request.submitted_at?.slice(
+													0,
+													10
+												) || "-"}
 											</td>
-											<td className="p-2 border">
-												{req.submitted_at?.slice(0, 10)}
-											</td>
-											{status === "approved" && (
-												<td className="p-2 border">
+											<td className="p-2 border text-center">
+												{request.status ===
+												"approved" ? (
 													<button
 														onClick={() =>
 															downloadDocument(
-																req.id
+																request.id
 															)
 														}
-														className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+														className="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
 													>
 														Descargar
 													</button>
-												</td>
-											)}
+												) : (
+													"-"
+												)}
+											</td>
 										</tr>
 									))
 								)}
