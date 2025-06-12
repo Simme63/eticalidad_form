@@ -6,7 +6,6 @@ import receiptTemplate from "../utils/PRUEBA.pdf"; //! test pdf
 export default function Overview() {
   const [requests, setRequests] = useState([]);
   const [user, setUser] = useState(null);
-  const [userData, setUserData] = useState(null);
   const [companyName, setCompanyName] = useState(null);
   const [cif, setCif] = useState(null);
   const [address, setAddress] = useState(null);
@@ -102,7 +101,6 @@ export default function Overview() {
     const getUserData = async () => {
       if (!user) return;
       const { data, error } = await supabase.from("profiles").select("*");
-      setUserData(data);
       const match = data.find((item) => item.email === user.email);
       if (match) {
         setCompanyName(match.company_name);
