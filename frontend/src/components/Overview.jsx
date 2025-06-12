@@ -7,44 +7,84 @@ export default function Overview() {
   const [requests, setRequests] = useState([]);
   const [user, setUser] = useState(null);
   const [userData, setUserData] = useState(null);
+  const [companyName, setCompanyName] = useState(null);
+  const [cif, setCif] = useState(null);
+  const [address, setAddress] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const handleDownload = async () => {
+    if (!user || !user.email || !companyName || !cif || !address) {
+      alert("Faltan datos de usuario para generar el PDF.");
+      return;
+    }
     const existingPdfBytes = await fetch(receiptTemplate).then((res) => res.arrayBuffer());
 
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
     const pages = pdfDoc.getPages();
     const firstPage = pages[0];
     const { height } = firstPage.getSize();
 
     // Draw text with userData
-    firstPage.drawText(`Compañía: ${user.companyName}`, {
+    firstPage.drawText("Compañía:", {
       x: 50,
-      y: height - 100,
+      y: height - 300,
+      size: 14,
+      font: boldFont,
+      color: rgb(50 / 255, 50 / 255, 50 / 255),
+    });
+
+    firstPage.drawText(`${companyName}`, {
+      x: 140,
+      y: height - 300,
+      size: 14,
+      font,
+      color: rgb(0, 0, 0),
+    });
+    firstPage.drawText("Correo electrónico:", {
+      x: 50,
+      y: height - 320,
+      size: 14,
+      font: boldFont,
+      color: rgb(50 / 255, 50 / 255, 50 / 255),
+    });
+
+    firstPage.drawText(`${user.email}`, {
+      x: 200,
+      y: height - 320,
       size: 14,
       font,
       color: rgb(0, 0, 0),
     });
 
-    firstPage.drawText(`Correo electrónico: ${user.email}`, {
+    firstPage.drawText("CIF:", {
       x: 50,
-      y: height - 120,
+      y: height - 340,
+      size: 14,
+      font: boldFont,
+      color: rgb(50 / 255, 50 / 255, 50 / 255),
+    });
+
+    firstPage.drawText(`${cif}`, {
+      x: 140,
+      y: height - 340,
       size: 14,
       font,
       color: rgb(0, 0, 0),
     });
-    firstPage.drawText(`CIF: ${user.cif}`, {
+    firstPage.drawText("Dirección:", {
       x: 50,
-      y: height - 140,
+      y: height - 360,
       size: 14,
-      font,
-      color: rgb(0, 0, 0),
+      font: boldFont,
+      color: rgb(50 / 255, 50 / 255, 50 / 255),
     });
-    firstPage.drawText(`Dirección: ${user.address}`, {
-      x: 50,
-      y: height - 160,
+
+    firstPage.drawText(`${address}`, {
+      x: 140,
+      y: height - 360,
       size: 14,
       font,
       color: rgb(0, 0, 0),
@@ -60,16 +100,14 @@ export default function Overview() {
   };
   useEffect(() => {
     const getUserData = async () => {
+      if (!user) return;
       const { data, error } = await supabase.from("profiles").select("*");
-      console.log("data: ", data);
       setUserData(data);
       const match = data.find((item) => item.email === user.email);
       if (match) {
-        console.log("Email match found:", match);
-        user.companyName = match.company_name;
-        user.cif = match.cif;
-        user.address = match.address;
-        console.log("user: ", user);
+        setCompanyName(match.company_name);
+        setCif(match.cif);
+        setAddress(match.address);
       } else {
         console.log("No matching email found.");
       }
@@ -149,7 +187,7 @@ export default function Overview() {
                     <button
                       type="button"
                       className="border-2 p-4 rounded-2xl bg-sky-600 text-white shadow-lg transition-all duration-150 hover:bg-white hover:text-sky-600 active:bg-sky-600 active:text-white"
-                      onClick={() => handleDownload(user)}>
+                      onClick={handleDownload}>
                       Obtener Copia
                     </button>
                   </td>
