@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabase/client";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import receiptTemplate from "../utils/PRUEBA.pdf"; //! test pdf
 
 const STATUS_ORDER = ["approved", "pending", "paid"];
 const STATUS_TRANSLATIONS = {
@@ -16,160 +18,197 @@ const STATUS_BORDER_CLASSES = {
 };
 
 export default function Overview() {
-	const [requests, setRequests] = useState([]);
-	const [user, setUser] = useState(null);
-	const [loading, setLoading] = useState(true);
+  const [requests, setRequests] = useState([]);
+  const [user, setUser] = useState(null);
+  const [companyName, setCompanyName] = useState(null);
+  const [cif, setCif] = useState(null);
+  const [address, setAddress] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-	useEffect(() => {
-		const fetchUserAndRequests = async () => {
-			setLoading(true);
-			const {
-				data: { user },
-			} = await supabase.auth.getUser();
-			setUser(user);
+  const handleDownload = async () => {
+    if (!user || !user.email || !companyName || !cif || !address) {
+      alert("Faltan datos de usuario para generar el PDF.");
+      return;
+    }
+    const existingPdfBytes = await fetch(receiptTemplate).then((res) => res.arrayBuffer());
 
-			if (!user) {
-				setRequests([]);
-				setLoading(false);
-				return;
-			}
+    const pdfDoc = await PDFDocument.load(existingPdfBytes);
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-			let query = supabase
-				.from("requests")
-				.select("*")
-				.order("submitted_at", { ascending: false })
-				.eq("user_id", user.id);
+    const pages = pdfDoc.getPages();
+    const firstPage = pages[0];
+    const { height } = firstPage.getSize();
 
-			const { data, error } = await query;
-			if (error) console.error("Error cargando solicitudes:", error);
+    // Draw text with userData
+    firstPage.drawText("Compañía:", {
+      x: 50,
+      y: height - 300,
+      size: 14,
+      font: boldFont,
+      color: rgb(50 / 255, 50 / 255, 50 / 255),
+    });
 
-			setRequests(data || []);
-			setLoading(false);
-		};
+    firstPage.drawText(`${companyName}`, {
+      x: 140,
+      y: height - 300,
+      size: 14,
+      font,
+      color: rgb(0, 0, 0),
+    });
+    firstPage.drawText("Correo electrónico:", {
+      x: 50,
+      y: height - 320,
+      size: 14,
+      font: boldFont,
+      color: rgb(50 / 255, 50 / 255, 50 / 255),
+    });
 
-		fetchUserAndRequests();
-	}, []);
+    firstPage.drawText(`${user.email}`, {
+      x: 200,
+      y: height - 320,
+      size: 14,
+      font,
+      color: rgb(0, 0, 0),
+    });
 
-	if (loading) return <div className="text-center mt-8">Cargando...</div>;
-	if (!user)
-		return (
-			<div className="text-center mt-8">
-				Inicia sesión para ver tus solicitudes.
-			</div>
-		);
+    firstPage.drawText("CIF:", {
+      x: 50,
+      y: height - 340,
+      size: 14,
+      font: boldFont,
+      color: rgb(50 / 255, 50 / 255, 50 / 255),
+    });
 
-	const groupedRequests = STATUS_ORDER.reduce((acc, status) => {
-		acc[status] = requests.filter(
-			(r) => (r.status?.toLowerCase() || "pending") === status
-		);
-		return acc;
-	}, {});
+    firstPage.drawText(`${cif}`, {
+      x: 140,
+      y: height - 340,
+      size: 14,
+      font,
+      color: rgb(0, 0, 0),
+    });
+    firstPage.drawText("Dirección:", {
+      x: 50,
+      y: height - 360,
+      size: 14,
+      font: boldFont,
+      color: rgb(50 / 255, 50 / 255, 50 / 255),
+    });
 
-	// Stub download handler, replace with your actual logic
-	const handleDownload = (request) => {
-		alert(`Descargando documento para solicitud ID ${request.id}`);
-		// TODO: add actual download logic here
-	};
+    firstPage.drawText(`${address}`, {
+      x: 140,
+      y: height - 360,
+      size: 14,
+      font,
+      color: rgb(0, 0, 0),
+    });
 
-	return (
-		<div className="max-w-3xl mx-auto mt-8 p-4 bg-white rounded shadow space-y-10">
-			<h2 className="text-2xl font-bold mb-4 text-center">
-				Resumen de solicitudes
-			</h2>
+    // 💾 Save and download the PDF
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `recibo-${user.email.split("@")[0]}.pdf`;
+    link.click();
+  };
+  useEffect(() => {
+    const getUserData = async () => {
+      if (!user) return;
+      const { data, error } = await supabase.from("profiles").select("*");
+      const match = data.find((item) => item.email === user.email);
+      if (match) {
+        setCompanyName(match.company_name);
+        setCif(match.cif);
+        setAddress(match.address);
+      } else {
+        console.log("No matching email found.");
+      }
+      if (error) {
+        console.log(error);
+      }
+    };
+    getUserData();
+  }, [user]);
 
-			{STATUS_ORDER.map((status) => {
-				const group = groupedRequests[status];
-				return (
-					<div
-						key={status}
-						className={`border-2 rounded-lg p-4 ${STATUS_BORDER_CLASSES[status]}`}
-					>
-						<h3 className="text-xl font-semibold mb-3">
-							{STATUS_TRANSLATIONS[status]} ({group.length})
-						</h3>
-						{group.length === 0 ? (
-							<p className="text-center italic text-gray-500 mb-6">
-								No hay solicitudes{" "}
-								{STATUS_TRANSLATIONS[status].toLowerCase()}.
-							</p>
-						) : (
-							<div className="overflow-x-auto">
-								<table className="min-w-full border mb-6">
-									<thead>
-										<tr className="bg-gray-100">
-											<th className="p-2 border">
-												Marca
-											</th>
-											<th className="p-2 border">
-												N° Factura
-											</th>
-											<th className="p-2 border">
-												N° Parte
-											</th>
-											<th className="p-2 border">
-												Cantidad
-											</th>
-											<th className="p-2 border">
-												Motivo
-											</th>
-											<th className="p-2 border">
-												Estado
-											</th>
-											{status === "approved" && (
-												<th className="p-2 border">
-													Acción
-												</th>
-											)}
-										</tr>
-									</thead>
-									<tbody>
-										{group.map((req) => (
-											<tr key={req.id}>
-												<td className="p-2 border">
-													{req.brand}
-												</td>
-												<td className="p-2 border">
-													{
-														req.delivery_note_or_invoice_number
-													}
-												</td>
-												<td className="p-2 border">
-													{req.part_number}
-												</td>
-												<td className="p-2 border">
-													{req.quantity}
-												</td>
-												<td className="p-2 border">
-													{req.reason_for_return}
-												</td>
-												<td className="p-2 border capitalize">
-													{STATUS_TRANSLATIONS[
-														req.status?.toLowerCase()
-													] || "Pendiente"}
-												</td>
-												{status === "approved" && (
-													<td className="p-2 border text-center">
-														<button
-															onClick={() =>
-																handleDownload(
-																	req
-																)
-															}
-															className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 px-3 rounded transition"
-														>
-															Descargar
-														</button>
-													</td>
-												)}
-											</tr>
-										))}
-									</tbody>
-								</table>
-							</div>
-						)}
-					</div>
-				);
-			})}
-		</div>
-	);
+  useEffect(() => {
+    const fetchUserAndRequests = async () => {
+      setLoading(true);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+
+      if (!user) {
+        setRequests([]);
+        setLoading(false);
+        return;
+      }
+
+      // Build query
+      let query = supabase.from("requests").select("*").order("submitted_at", {
+        ascending: false,
+      });
+      query = query.eq("user_id", user.id);
+
+      const { data, error } = await query;
+
+      if (error) console.error("Error cargando solicitudes:", error);
+
+      setRequests(data || []);
+      setLoading(false);
+    };
+
+    fetchUserAndRequests();
+  }, []);
+
+  if (loading) return <div className="text-center mt-8">Cargando...</div>;
+  if (!user) return <div className="text-center mt-8">Inicia sesión para ver tus solicitudes.</div>;
+
+  return (
+    <div className="max-w-3xl mx-auto mt-8 p-4 bg-white rounded shadow">
+      <h2 className="text-2xl font-bold mb-4 text-center">Resumen de solicitudes</h2>
+      <div className="overflow-x-auto">
+        <table className="min-w-full border">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="p-2 border">Marca</th>
+              <th className="p-2 border">N° Factura</th>
+              <th className="p-2 border">N° Parte</th>
+              <th className="p-2 border">Cantidad</th>
+              <th className="p-2 border">Motivo</th>
+              <th className="p-2 border">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {requests.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="text-center p-4">
+                  No hay solicitudes.
+                </td>
+              </tr>
+            ) : (
+              requests.map((req) => (
+                <tr key={req.id}>
+                  <td className="p-2 border">{req.brand}</td>
+                  <td className="p-2 border">{req.delivery_note_or_invoice_number}</td>
+                  <td className="p-2 border">{req.part_number}</td>
+                  <td className="p-2 border">{req.quantity}</td>
+                  <td className="p-2 border">{req.reason_for_return}</td>
+                  <td className="p-2 border capitalize">{req.status || "pendiente"}</td>
+                  <td className="p-2 border capitalize">
+                    <button
+                      type="button"
+                      className="border-2 p-4 rounded-2xl bg-sky-600 text-white shadow-lg transition-all duration-150 hover:bg-white hover:text-sky-600 active:bg-sky-600 active:text-white"
+                      onClick={handleDownload}>
+                      Obtener Copia
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }

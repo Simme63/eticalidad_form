@@ -106,7 +106,7 @@ function RequestForm() {
         <option value="Modelo incorrecto">Modelo incorrecto</option>
         <option value="Compra en exceso">Compra en exceso</option>
         <option value="Innecesario">Innecesario</option>
-        <option value="Dañado durante el envíot">Dañado durante el envío</option>
+        <option value="Dañado durante el envío">Dañado durante el envío</option>
         <option value="Otro">Otro</option>
       </select>
       <input
