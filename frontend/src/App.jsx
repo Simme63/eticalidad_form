@@ -5,34 +5,34 @@ import MainView from "./components/MainView";
 import { supabase } from "./supabase/client";
 
 function App() {
-  const [, setUser] = useAtom(userAtom);
+	const [, setUser] = useAtom(userAtom);
 
-  useEffect(() => {
-    const getUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (error) {
-        console.error("Error fetching user:", error);
-      } else {
-        setUser(data.user);
-      }
-    };
+	useEffect(() => {
+		const getUser = async () => {
+			const { data, error } = await supabase.auth.getUser();
+			if (error) {
+				console.error("Error fetching user:", error);
+			} else {
+				setUser(data.user);
+			}
+		};
 
-    getUser();
+		getUser();
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
-    });
+		const {
+			data: { subscription },
+		} = supabase.auth.onAuthStateChange((_event, session) => {
+			setUser(session?.user || null);
+		});
 
-    return () => subscription.unsubscribe();
-  }, [setUser]);
+		return () => subscription.unsubscribe();
+	}, [setUser]);
 
-  return (
-    <div>
-      <MainView />
-    </div>
-  );
+	return (
+		<div>
+			<MainView />
+		</div>
+	);
 }
 
 export default App;

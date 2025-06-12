@@ -3,6 +3,20 @@ import { supabase } from "../supabase/client";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import receiptTemplate from "../utils/PRUEBA.pdf"; //! test pdf
 
+const STATUS_ORDER = ["approved", "pending", "paid"];
+const STATUS_TRANSLATIONS = {
+	pending: "Pendiente",
+	approved: "Aprobado",
+	paid: "Pagado",
+};
+
+// Softer border colors using lighter shades and opacity (Tailwind uses alpha in hex)
+const STATUS_BORDER_CLASSES = {
+	pending: "border-yellow-300",
+	approved: "border-red-300",
+	paid: "border-green-300",
+};
+
 export default function Overview() {
   const [requests, setRequests] = useState([]);
   const [user, setUser] = useState(null);
