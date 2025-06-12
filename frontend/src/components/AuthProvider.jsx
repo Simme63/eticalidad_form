@@ -5,72 +5,121 @@ import Register from "./Register";
 
 function AuthProvider({ children }) {
 	const [session, setSession] = useState(null);
-	const [, setUserProfile] = useState(null);
+	const [userProfile, setUserProfile] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
-	const [authView, setAuthView] = useState(null); // 'login' | 'register' | null
+	const [authView, setAuthView] = useState(null);
+
+	// ⚠️ brute-force cleanup method
+	const nukeEverythingAndReload = async () => {
+		console.warn("💣 Nuking everything and reloading");
+		await supabase.auth.signOut();
+		localStorage.clear();
+		sessionStorage.clear();
+		indexedDB.databases &&
+			indexedDB
+				.databases()
+				.then((dbs) =>
+					dbs.forEach((db) => indexedDB.deleteDatabase(db.name))
+				);
+		window.location.reload();
+	};
 
 	useEffect(() => {
-		supabase.auth.getSession().then(({ data }) => {
-			setSession(data.session);
-			if (data.session?.user?.id) {
-				checkUserProfile(data.session.user.id);
-			} else {
-				setLoading(false);
+		const hardTimeout = setTimeout(() => {
+			console.warn("⚠️ Hard fallback timeout hit");
+			nukeEverythingAndReload();
+		}, 8000);
+
+		const initAuth = async () => {
+			try {
+				const { data, error: sessionError } =
+					await supabase.auth.getSession();
+				console.log("Initial session result:", data);
+
+				if (sessionError) {
+					console.error("Session fetch error:", sessionError);
+					nukeEverythingAndReload();
+					return;
+				}
+
+				if (!data.session) {
+					console.log("No active session");
+					setLoading(false);
+					return;
+				}
+
+				setSession(data.session);
+				await checkUserProfile(data.session.user.id);
+			} catch (err) {
+				console.error("Unexpected auth error:", err);
+				nukeEverythingAndReload();
 			}
-		});
+		};
 
 		const { data: listener } = supabase.auth.onAuthStateChange(
 			async (event, session) => {
-				setSession(session);
-				if (session?.user?.id) {
-					await checkUserProfile(session.user.id);
-				} else {
+				console.log("Auth state change:", event, session);
+				if (!session) {
+					setSession(null);
 					setUserProfile(null);
 					setLoading(false);
+				} else {
+					setSession(session);
+					await checkUserProfile(session.user.id);
 				}
 			}
 		);
 
+		initAuth();
+
 		return () => {
 			listener.subscription.unsubscribe();
+			clearTimeout(hardTimeout);
 		};
 	}, []);
 
 	async function checkUserProfile(userId) {
 		if (!userId) {
+			console.warn("Missing userId in checkUserProfile");
 			setUserProfile(null);
 			setLoading(false);
 			return;
 		}
 
-		setLoading(true);
+		console.log("Checking user profile for", userId);
 
-		const { data: profile, error: profileError } = await supabase
-			.from("profiles")
-			.select("status")
-			.eq("id", userId)
-			.single();
+		try {
+			const { data: profile, error } = await supabase
+				.from("profiles")
+				.select("status")
+				.eq("id", userId)
+				.single();
 
-		if (profileError || !profile) {
-			setError("Error al cargar el perfil de usuario.");
-			await supabase.auth.signOut();
-			setUserProfile(null);
+			if (error) {
+				console.error("Profile fetch error:", error);
+				nukeEverythingAndReload();
+				return;
+			}
+
+			if (!profile || profile.status !== "approved") {
+				console.warn("Profile not approved or missing:", profile);
+				setError(
+					"Tu cuenta aún no ha sido aprobada por un administrador."
+				);
+				await supabase.auth.signOut();
+				window.location.reload();
+				return;
+			}
+
+			console.log("Profile approved:", profile);
+			setUserProfile(profile);
+			setError(null);
 			setLoading(false);
-			return;
+		} catch (e) {
+			console.error("Profile check failed:", e);
+			nukeEverythingAndReload();
 		}
-
-		if (profile.status !== "approved") {
-			setError("Tu cuenta aún no ha sido aprobada por un administrador.");
-			await supabase.auth.signOut();
-			setUserProfile(null);
-			setLoading(false);
-			return;
-		}
-
-		setUserProfile(profile);
-		setError(null);
-		setLoading(false);
 	}
 
 	if (loading) {
@@ -78,6 +127,28 @@ function AuthProvider({ children }) {
 			<div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-sky-100 to-sky-300">
 				<div className="text-sky-600 text-lg font-semibold">
 					Cargando...
+				</div>
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-sky-100 to-sky-300">
+				<div className="text-center bg-white rounded-2xl shadow-2xl p-10 border border-sky-200 w-full max-w-xl">
+					<h2 className="text-2xl font-bold text-sky-700 mb-4">
+						Acceso denegado
+					</h2>
+					<p className="text-gray-700 mb-6">{error}</p>
+					<button
+						onClick={async () => {
+							await supabase.auth.signOut();
+							window.location.reload();
+						}}
+						className="bg-sky-600 hover:bg-sky-700 text-white font-semibold py-3 px-6 rounded-xl"
+					>
+						Volver
+					</button>
 				</div>
 			</div>
 		);
@@ -135,28 +206,6 @@ function AuthProvider({ children }) {
 							</button>
 						</div>
 					)}
-				</div>
-			</div>
-		);
-	}
-
-	if (error) {
-		return (
-			<div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-sky-100 to-sky-300">
-				<div className="text-center bg-white rounded-2xl shadow-2xl p-10 border border-sky-200 w-full max-w-xl">
-					<h2 className="text-2xl font-bold text-sky-700 mb-4">
-						Acceso denegado
-					</h2>
-					<p className="text-gray-700 mb-6">{error}</p>
-					<button
-						onClick={async () => {
-							await supabase.auth.signOut();
-							window.location.reload();
-						}}
-						className="bg-sky-600 hover:bg-sky-700 text-white font-semibold py-3 px-6 rounded-xl"
-					>
-						Volver
-					</button>
 				</div>
 			</div>
 		);
